@@ -27,6 +27,7 @@ if __name__ == "__main__":
     qc.cx(2, 3)
     qc2 = QuantumCircuit(5)
     pairs = [(0, 1), (2, 3)]
+    qc2 = circuit_twirling.paulitwirling.twirl_hard_cycle(qc2,5,pairs)
     if Operator(qc2).equiv(qc):
         print('twirl_hard_cycle is working')
     else:
