@@ -16,10 +16,11 @@ import qiskit.quantum_info as qi
 import numpy
 import qiskit"""
 
+import random
 import numpy
 from . import twirlingconstants
 
-def twirl_cnot(quantum_circuit, target_qubit, control_qubit):
+def twirl_cnot(quantum_circuit, control_qubit, target_qubit):
     """
     Applies a random pair of Paulis before and complementary Pauli Gates
     after a CNOT that is equivalent to a CNOT upto a global phase
@@ -53,8 +54,8 @@ def twirl_cnot(quantum_circuit, target_qubit, control_qubit):
     
     # use numpy to generate an array of two random numbers
     
-    paulis = None
-    
+    paulis =[random.randint(0,3),random.randint(0,3)]
+
     # this is a list which will apply the quantum gates
     gates = [lambda x: 0, quantum_circuit.x, quantum_circuit.y,
              quantum_circuit.z]
@@ -64,25 +65,38 @@ def twirl_cnot(quantum_circuit, target_qubit, control_qubit):
         use the list gates to apply the pauli gate onto 
         the respective qubit
     """
-    
+
     # apply the cnot gate on control_qubit and target_qubit
+
+    gates[paulis[0]](control_qubit)
+    gates[paulis[1]](target_qubit)
+
     pass
+
+    quantum_circuit.barrier()
+    quantum_circuit.cx(control_qubit,target_qubit)
+    quantum_circuit.barrier()
     
     """
-    use twirling_constants.TWIRL_CNOT_DICT to extract the complementary gate. You will need to turn the list into a 
+    use twirlingconstants.TWIRL_CNOT_DICT to extract the complementary gate. You will need to turn the list into a 
     tuple via (A_c, A_t) the returned pair will be called
     comp
     """
-    pauli_key = None
-    
+
+    pauli_key = (paulis[0],paulis[1])
+
     # the complementary gate index (like paulis) returned from dict
-    comp = None
+    comp =  twirlingconstants.TWIRL_CNOT_DICT[pauli_key]
     
     """
     for each element in comp
         use the list gates to apply the pauli gate onto 
         the respective qubit
     """
+
+    gates[comp[0]](control_qubit)
+    gates[comp[1]](target_qubit)
+
     pass
     
     # return the quantum circuit
@@ -133,7 +147,16 @@ def twirl_hard_cycle(quantum_circuit, num_qubits, tc_pairs):
     # generate a list of the spectator qubits
     # this should be all qubits not in tc_pairs
     
-    spectators = None
+    spectators = []
+    cxqubits = []
+
+    for pair in tc_pairs:
+        for qubit in pair:
+            cxqubits.append(qubit)
+
+    for qubit in range(num_qubits):
+        if qubit not in cxqubits:
+            spectators.append(qubit)
     
     """
     for each qubit in spectators:
@@ -143,12 +166,22 @@ def twirl_hard_cycle(quantum_circuit, num_qubits, tc_pairs):
         apply the same pauli gate on the spectator
     """
     
+
+    for qubit in spectators:
+        specrand = random.randint(0,3)
+        gates[specrand](qubit)
+        quantum_circuit.barrier()
+        gates[specrand](qubit)
+
     pass
     
     """
     for each pair in tc_pairs:
         apply each pauli gate for the tc_pair
     """
+
+    for pair in tc_pairs:
+        quantum_circuit = twirl_cnot(quantum_circuit,pair[0],pair[1])
     
     pass 
     
