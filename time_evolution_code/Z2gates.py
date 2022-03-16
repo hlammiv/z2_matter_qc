@@ -10,10 +10,16 @@ simulations
 """
 
 import qiskit
-from . import circuit_twirling
+import numpy as np
+import os
+import sys
+from scipy.linalg import expm
+sys.path.append("..")
+import pauli_twirling.circuit_twirling as circuit_twirling
+#from ..pauli_twirling.circuit_twirling import paulitwirling
 
 def apply_mass_terms(quantum_circuit, number_of_sites,
-                     mass, epsilon):
+                      mass, epsilon):
     '''
 
     this function applies an Rz(mass * epsilon / 2 (-1)^{i})
@@ -38,8 +44,8 @@ def apply_mass_terms(quantum_circuit, number_of_sites,
     # and then apply the appropriate sign rotation
     for site in range(number_of_sites):
         # the sites correspond to every other qubit
-        quantum_circuit.rz((-1) ** site * mass * epsilon,
-                           2 * site)
+        quantum_circuit.rz((-1) ** site * mass * epsilon / 2,
+                            2 * site)
     # Let's return the quantum circuit
     # this is not strictly necessary but is safe
     return quantum_circuit
@@ -66,13 +72,13 @@ def apply_gauge_terms(quantum_circuit, number_of_sites, epsilon):
     '''
     # iterate through the odd qubits which correspond to the gauge links
     for link in range(number_of_sites - 1):
-        quantum_circuit.rx(epsilon, 2 * link + 1)
+        quantum_circuit.rx(epsilon / 2, 2 * link + 1)
     # return the quantum circuit
     return quantum_circuit
 
 
 def apply_fermion_hopping_2sites(quantum_circuit, epsilon,
-                                 eta=1.0, twirl=False):
+                                  eta=1.0, twirl=False):
     """
 
     apply the 4 cnot version of the fermion hopping gate shown in the overleaf
@@ -144,10 +150,10 @@ def apply_fermion_hopping_2sites(quantum_circuit, epsilon,
     return quantum_circuit
 
 
-def fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0, twirl=False):
+def apply_fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0, twirl=False):
     """
-     perform the fermion hopping operation across a 4 site staggered
-     fermion lattice
+      perform the fermion hopping operation across a 4 site staggered
+      fermion lattice
 
     Parameters
     ----------
@@ -173,7 +179,7 @@ def fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0, twirl=False):
     #================#
     # fermion term 1 #
     #================#
-    quantum_circuit.z([2, 4])
+    quantum_circuit.z([0, 4])
     quantum_circuit.sxdg([1, 5])
     quantum_circuit.s([1, 5])
     # if twirl flag is raised apply a twirled CNOT HARD CYCLE
@@ -181,55 +187,55 @@ def fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0, twirl=False):
     #=========================
     if twirl:
         quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                            7, [(2, 1),
+                                                            7, [(0, 1),
                                                                 (4, 5)])
     # otherwise just a regular cnot across (2, 1) and (4, 5)
     else:
-        quantum_circuit.cx(2, 1)
+        quantum_circuit.cx(0, 1)
         quantum_circuit.cx(4, 5)
     # single qubit gate rotation
     #================================
-    quantum_circuit.sx([2, 4])
+    quantum_circuit.sx([0, 4])
     # if twirling flag is raised apply the second CNOT gate
     if twirl:
         quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                            7, [(2, 0),
+                                                            7, [(0, 2),
                                                                 (4, 6)])
     # otherwise just apply a plain old cnot across 2-0 and 4-6
     else:
-        quantum_circuit.cx(2, 0)
+        quantum_circuit.cx(0, 2)
         quantum_circuit.cx(4, 6)
     #single qubit rotions for the evolution
     #===============================
-    quantum_circuit.rx(epsilon / 2, [2, 4])
-    quantum_circuit.ry(epsilon / 2, [0, 6])
+    quantum_circuit.rx(epsilon / 2, [0, 4])
+    quantum_circuit.ry(epsilon / 2, [2, 6])
     # let's un do the semi-diagonalization operations across the even pairs
 
     # if twirling flag is raised apply the second CNOT gate
     if twirl:
         quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                            7, [(2, 0),
+                                                            7, [(0, 2),
                                                                 (4, 6)])
     # otherwise just apply a plain old cnot across 2-0 and 4-6
     else:
-        quantum_circuit.cx(2, 0)
+        quantum_circuit.cx(0, 2)
         quantum_circuit.cx(4, 6)
     #===============================
-    quantum_circuit.sxdg([2, 4])
+    quantum_circuit.sxdg([0, 4])
     #=========================
     #=========================
     if twirl:
         quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                            7, [(2, 1),
+                                                            7, [(0, 1),
                                                                 (4, 5)])
     # otherwise just a regular cnot across (2, 1) and (4, 5)
     else:
-        quantum_circuit.cx(2, 1)
+        quantum_circuit.cx(0, 1)
         quantum_circuit.cx(4, 5)
     #================================
     quantum_circuit.sdg([1, 5])
     quantum_circuit.sx([1, 5])
-    quantum_circuit.z([2, 4])
+    quantum_circuit.z([0, 4])
     # now we are going to apply the fermion hopping term to the sites 1 - 2
     #===========#
     # Fhop pt2  #
@@ -247,7 +253,7 @@ def fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0, twirl=False):
         quantum_circuit.cx(3, 4)
     # some more single qubit rotations
     #================================
-    quantum_circuit.rx(-epsilon / 2, 3)
+    quantum_circuit.rx(epsilon / 2, 3)
     quantum_circuit.h(2)
     # if the twirling flag is raised apply a cnot hard cycle twirl here
     # otherwise just leave it as is
@@ -271,7 +277,7 @@ def fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0, twirl=False):
         quantum_circuit.cx(3, 4)
     quantum_circuit.h(4)
     quantum_circuit.s(4)
-    quantum_circuit.rx(-epsilon / 2, 3)
+    quantum_circuit.rx(epsilon / 2, 3)
     # if the twirling flag is raised apply a cnot hard cycle twirl here
     # otherwise just leave it as is
     if twirl:
@@ -286,3 +292,5 @@ def fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0, twirl=False):
     quantum_circuit.sdg([2, 4])
     # return the quantum circuit object
     return quantum_circuit
+
+

@@ -1,30 +1,14 @@
-import circuit_twirling
+import circuit_twirling.paulitwirling
 
-
-from qiskit import QuantumRegister,ClassicalRegister,QuantumCircuit, execute
-from qiskit import Aer, IBMQ
-from qiskit import tools
-from qiskit.test import mock 
-import qiskit
+from qiskit import QuantumCircuit
 from qiskit.quantum_info.operators import Operator
-from qiskit.compiler import transpile
-from qiskit.visualization import plot_gate_map
-from qiskit.providers.aer import noise
-from qiskit.visualization import array_to_latex
-from qiskit.providers.ibmq import least_busy
-from qiskit.tools.monitor import job_monitor
-from qiskit.quantum_info import Operator 
-import qiskit.quantum_info as qi
-
-import numpy
-import qiskit
 
 if __name__ == "__main__":
 
     print("testing twirl_cnot" + "." * 5)
     qc = QuantumCircuit(2)
     qc.cx(0, 1)
-    
+
     check_flag = True
     for i in range(20):
         qc2 = QuantumCircuit(2)
@@ -36,7 +20,7 @@ if __name__ == "__main__":
         print("twirl_cnot appears to be working")
     else:
         print("twirl_cnot is not working; not equivalent to CNOT")
-    
+
     print('==' * 50)
     qc = QuantumCircuit(5)
     qc.cx(0, 1)
@@ -47,4 +31,3 @@ if __name__ == "__main__":
         print('twirl_hard_cycle is working')
     else:
         print('twirl_hard_cycle is not working')
-    
