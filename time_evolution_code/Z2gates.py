@@ -180,7 +180,7 @@ def apply_fermion_hopping_2sites(quantum_circuit, epsilon,
     if twirl:
         for n in range(ncnots):
             quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                                3, (0, 1))
+                                                                3, [(0, 1)])
     # otherwise just apply a regular cnot
     else:
         for n in range(ncnots):
@@ -192,7 +192,7 @@ def apply_fermion_hopping_2sites(quantum_circuit, epsilon,
     if twirl:
         for n in range(ncnots):
             quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                            3, (0, 2))
+                                                            3, [(0, 2)])
     # otherwise just apply a regular cnot
     else:
         for n in range(ncnots):
@@ -207,7 +207,7 @@ def apply_fermion_hopping_2sites(quantum_circuit, epsilon,
 
         for n in range(ncnots):
             quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                                3, (0, 2))
+                                                                3, [(0, 2)])
     # otherwise do nothing
     else:
         for n in range(ncnots):
@@ -219,7 +219,7 @@ def apply_fermion_hopping_2sites(quantum_circuit, epsilon,
     if twirl:
         for n in range(ncnots):
             quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                            3, (0, 1))
+                                                            3, [(0, 1)])
     # otherwise do nothing
     else:
         for n in range(ncnots):
@@ -358,11 +358,11 @@ def apply_fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0,
 
         for n in range(ncnots):
             quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                                7, (3, 2))
+                                                                7, [(3, 2)])
 
         for n in range(ncnots):
             quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                                7, (3, 4))
+                                                                7, [(3, 4)])
     else:
         for n in range(ncnots):
             quantum_circuit.barrier(3, 2)
@@ -380,7 +380,7 @@ def apply_fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0,
 
         for n in range(ncnots):
             quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                                7, (3, 2))
+                                                                7, [(3, 2)])
     else:
         for n in range(ncnots):
             quantum_circuit.barrier(3, 2)
@@ -396,7 +396,7 @@ def apply_fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0,
     if twirl:
         for n in range(ncnots):
             quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                                7, (3, 4))
+                                                                7, [(3, 4)])
     else:
         for n in range(ncnots):
             quantum_circuit.barrier(3, 4)
@@ -408,9 +408,9 @@ def apply_fermion_hopping_4sites(quantum_circuit, epsilon, eta=1.0,
     # otherwise just leave it as is
     if twirl:
         quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                            7, (3, 4))
+                                                            7, [(3, 4)])
         quantum_circuit = circuit_twirling.twirl_hard_cycle(quantum_circuit,
-                                                            7, (3, 2))
+                                                            7, [(3, 2)])
     else:
         quantum_circuit.cx(3, 4)
         quantum_circuit.cx(3, 2)
