@@ -98,12 +98,10 @@ def ZNEfits(observable, NCX, nqubits, nsteps):
     #Initiate the dictonary of fits
     fits = {}
 
-    #Loop over each trotter step
-    for step in range(nsteps):
-        #Loop over each qubit
-        for qubit in range(nqubits):
-            fits['q'+str(qubit)] = lsqfit.nonlinear_fit(data=(NCX,[observable[j][step][qubit] for j in NCX]), 
-                                    prior=prior, fcn=exponential, debug=True)
+    #Loop over each qubit, and perform the fit for each trotter step
+    for qubit in range(nqubits):
+        fits['q'+str(qubit)] = [lsqfit.nonlinear_fit(data=(NCX,[observable[j][step][qubit] for j in NCX]), 
+                                prior=prior, fcn=exponential, debug=True) for step in range(nsteps)]
 
     return fits
 
