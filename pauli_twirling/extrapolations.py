@@ -101,7 +101,7 @@ def ZNEfits(observable, NCX, nqubits, nsteps):
     #Loop over each trotter step
     for step in range(nsteps):
         #Loop over each qubit
-        for qubit in range(nqubits)
+        for qubit in range(nqubits):
             fits['q'+str(qubit)] = lsqfit.nonlinear_fit(data=(NCX,[observable[j][step][qubit] for j in NCX]), 
                                     prior=prior, fcn=exponential, debug=True)
 
