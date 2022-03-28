@@ -70,9 +70,9 @@ def avg_observable_per_time_step(job_results, ntrotter, nqubits, shots, observab
             for key in counts_dict.keys():
                 for site in range(nqubits):
                     if key[site] == '0':
-                        all_obs[i, j, site] = observable[0] * counts_dict[key] / shots
+                        all_obs[i, j, site] = observable[0] * (counts_dict[key] / shots)
                     else:
-                        all_obs[i, j, site] = observable[1] * counts_dict[key] / shots
+                        all_obs[i, j, site] = observable[1] * (counts_dict[key] / shots)
             # adds measurement of desired observable to the ncircuit row and ntrotter column
             # ------------------------------------------------------------------------------
 
