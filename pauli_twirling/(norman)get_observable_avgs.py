@@ -50,7 +50,6 @@ def avg_observable_per_time_step(job_results, ntrotter, nqubits, shots, observab
         The observable averaged over the amount of circuits run for each trotter step
 
     """
-
     all_obs = np.zeros((len(job_results), ntrotter, nqubits))
 
 
@@ -70,9 +69,9 @@ def avg_observable_per_time_step(job_results, ntrotter, nqubits, shots, observab
             for key in counts_dict.keys():
                 for site in range(nqubits):
                     if key[site] == '0':
-                        all_obs[i, j, site] = observable[0] * (counts_dict[key] / shots)
+                        all_obs[i, j, site] += observable[0] * counts_dict[key] / shots
                     else:
-                        all_obs[i, j, site] = observable[1] * (counts_dict[key] / shots)
+                        all_obs[i, j, site] += observable[1] * counts_dict[key] / shots
             # adds measurement of desired observable to the ncircuit row and ntrotter column
             # ------------------------------------------------------------------------------
 
@@ -119,10 +118,10 @@ def get_all_observables(ntrotter: int, richardson_level: int, nqubits:int, job_r
 
     data = {}
 
-    for level in range(1, richardson_level):
+    for level in range(1,richardson_level+1):
         ncx = level * 2 - 1
-
-        data[ncx] = avg_observable_per_time_step(job_results_list[level - 1], ntrotter, 
-                                                        nqubits, shots, measure)
+        
+        data[ncx] = avg_observable_per_time_step(job_results_list[level-1], ntrotter, 
+                                                    nqubits, shots, measure)
 
     return data
