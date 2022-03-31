@@ -5,6 +5,11 @@ import numpy as np
 
 
 """
+copyright March 31, 2022
+Authors: Elizabeth Hardt, Norman Hogan, Erik Gustafson, Mike Wagman
+Created: March 27, 2022
+Last edited: March 31, 2022 by Elizabeth Hardt
+
 Immediate results of job running function assumed to be in the form:
 
 job_results = [list of size richardson_level of
@@ -69,9 +74,9 @@ def avg_observable_per_time_step(job_results, ntrotter, nqubits, shots, observab
             for key in counts_dict.keys():
                 for site in range(nqubits):
                     if key[site] == '0':
-                        all_obs[i, j, site] += observable[0] * counts_dict[key] / shots
+                        all_obs[i, j, site] += observable[(site, 0)] * counts_dict[key] / shots
                     else:
-                        all_obs[i, j, site] += observable[1] * counts_dict[key] / shots
+                        all_obs[i, j, site] += observable[(site, 1)] * counts_dict[key] / shots
             # adds measurement of desired observable to the ncircuit row and ntrotter column
             # ------------------------------------------------------------------------------
 
@@ -82,26 +87,26 @@ def avg_observable_per_time_step(job_results, ntrotter, nqubits, shots, observab
     return obs_list_trotter
 
 
-def get_all_observables(ntrotter: int, richardson_level: int, nqubits:int, job_results_list, shots, measure):
+def get_all_observables(ntrotter: int, richardson_level: int, nqubits: int, job_results_list: list, shots: int, observable: dict):
     """
     Objective of function is to collect and organize all data into format easily used by extrapolation.py script
     Calls avg_observable_per_time_step function
 
     Parameters
     ---------------------------
-    ntrotter = int
+    ntrotter: int
         The amount of trotter steps
-    richardson_level = int
+    richardson_level: int
         MAX richardson_level run; if there is data for several richardson levels, this function takes the highest level
         and creates a dictionary with a key for every possible amount of CNOTs up to that level; job_results_list should
         correspond to amount of levels
     nqubits: int
         The number of qubits
-    job_results_list = list
+    job_results_list: list
         Job results in a in a list containing results from each richardson level run
-    shots = int
+    shots: int
         Number of shots from job
-    measure = dict
+    observable: dict
         Exected measurement of an observable for a qubit in either the 0 or 1 state
 
 
@@ -122,6 +127,6 @@ def get_all_observables(ntrotter: int, richardson_level: int, nqubits:int, job_r
         ncx = level * 2 - 1
         
         data[ncx] = avg_observable_per_time_step(job_results_list[level-1], ntrotter, 
-                                                    nqubits, shots, measure)
+                                                    nqubits, shots, observable)
 
     return data
