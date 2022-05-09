@@ -1,0 +1,27 @@
+---
+account_info:
+  hub: "ibm-q-education"
+  group: "fermilab-1"
+  project: "qjs-for-hep"
+
+simulation_opts:
+  lattice_params:
+    mass: 1.0
+    nsites: 2 
+    tf: 2
+  circuit_opts:
+    ntrotter: 5
+    pauli_twirling:
+      twirl: false
+      ntwirls: 1
+    richardson_level: 1  
+  qasm_simulation: 
+    simulation: true
+    sim_noise: "ibmq_belem"
+
+runtime_opts:
+  program_id: "circuit-runner"
+  nshots: 1000
+  readout_error_mitigation: true
+  memory: true
+  optimization_level: 1
