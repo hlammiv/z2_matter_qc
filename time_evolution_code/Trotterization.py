@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar 15 15:06:12 2022
-Last edited on Thu Mar 26 2022
+Last edited on Thu Mar 28 2022
 
 @authors: Erik Gustafson, Elizabeth Hardt, Norman Hogan,
           Henry Lamm, Ruth Van de Water, Mike Wagman
@@ -17,7 +17,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator as Operator
 
 
-def trotter_evolution(num_sites: int, epsilon: float, mass: float,
+def trotter_evolution(nsites: int, epsilon: float, mass: float,
                       ntrotter: int, twirl=False, qsim=True,
                       richardson_level: int=1, state_prep=True):
     """
@@ -69,7 +69,7 @@ def trotter_evolution(num_sites: int, epsilon: float, mass: float,
     # (recall that H|0> = |+>)
     # needed for gauge invariance? Vacuum quantum numbers? Something else???
     if state_prep:
-        qc.h([2 * i + 1 for i in range(num_sites - 1)])
+        qc.h([2 * i + 1 for i in range(nsites - 1)])
 
     # build quantum circuit for running on a quantum computer
     # using different layouts for 2 sites (3 qubits) and 4 sites (7 qubits)

@@ -48,6 +48,16 @@ def noiserescale(target_observable,estimation_observable):
     Uses a noise-estimation circuit to rescale the observable of our target circuit by 
     some factor related to the noise from cnots.
 
+    The estimation circuit is similar in structure to the target circuit we are interested
+    in simulating, except there is no initialization of a state (all qubits in the default
+    | 0 > state) and all single-qubit rotational gates are made trivial (done by taking 
+    epsilon->0).
+
+    For example, if the observable being measured is < Z >, then for a qubit in state | 0 >
+    we expect the result to be +1. If instead our measurement of the estimation circuit
+    gives 0.97, then we can assume the noise in both the estimation and target circuit should 
+    have reduced the signal by ~3%.
+
 
     Parameters
     ----------
@@ -70,7 +80,18 @@ def noiserescale(target_observable,estimation_observable):
 
 def ZNEfits(observable, NCX, nqubits, nsteps):
     """
-    Uses exponential fits to determine the zero-noise limit
+    The Richardson Extrapolation (or Zero-Noise Extrapolation (ZNE)) assumes the 
+    coherent errors from cnots in a circuit cause an exponential decrease in signal 
+    as a function of 'Richardson Level' or 'r'. The Richardson Level is related to the 
+    multiplicity of cnots (in our case, r = [1,3,5,7,...]).
+
+                        The signal decay function is described as:
+
+                                    A(r) = A0 * exp[B * r] 
+
+    where A0 is the zero-noise estimation and B is a factor related to the noise model. 
+    Since we are interested in the zero noise limit (r=0) only parameter A0 is needed for
+    this extrapolation. 
 
 
     Parameters
@@ -78,7 +99,7 @@ def ZNEfits(observable, NCX, nqubits, nsteps):
     observable: Dictionary containing lists of GVars
         For each multiplicity of cnots (keys), the observable at each trotter step (values)
     NCX : list
-        The multiplicities of cnots for each step of the zero-noise extrapolation (ZNE)
+        The multiplicities of cnots for each step of the ZNE
     nqubits: int
         The total number of qubits
     nsteps: int
@@ -86,13 +107,15 @@ def ZNEfits(observable, NCX, nqubits, nsteps):
     
     Returns
     -------
-    fits : Dictionary of lsqfit.nonlinear_fit
-        The fits and their parameters for each qubit(key)
+    fits : Dictionary containing lists of GVars
+        For each qubit(key), the trotter steps with their zero-noise estimations A0 (values)
     
     """
 
     #Create the exponential function and its prior parameters
     exponential = lambda x, p: [p['A'] * gv.exp(-p['B'] * x[i]) for i in range(len(x))]
+
+    #This prior was chosen to keep the fits within what is physically possible
     prior = {'f(A)': gv.BufferDict.uniform('f', 1, -1), 'log(B)': gv.gvar(0, 2000)}
 
     #Initiate the dictonary of fits
@@ -101,7 +124,7 @@ def ZNEfits(observable, NCX, nqubits, nsteps):
     #Loop over each qubit, and perform the fit for each trotter step
     for qubit in range(nqubits):
         fits['q'+str(qubit)] = [lsqfit.nonlinear_fit(data=(NCX,[observable[j][step][qubit] for j in NCX]), 
-                                prior=prior, fcn=exponential, debug=True) for step in range(nsteps)]
+                                prior=prior, fcn=exponential, debug=True).p['A'] for step in range(nsteps)]
 
     return fits
 
