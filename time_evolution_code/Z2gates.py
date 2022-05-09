@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar 15 15:10:00 2022
-Last edited on Last edited on Thu Mar 24 2022
+Last edited on Last edited on Mon May 09 2022
 @authors: Erik Gustafson, Elizabeth Hardt, Norman Hogan,
             Henry Lamm, Ruth Van de Water, and Mike Wagman
 Basic Z2 gates.
@@ -69,14 +69,11 @@ def apply_gauge_terms(qc, nsites, epsilon):
 
     return qc
 
-#####################################################################
-############### Erik will add twirling functionality? ###############
-#####################################################################
 def apply_fermion_hopping(qc, nsites : int, epsilon : float,
-                          eta=1.0, twirl=False):
+                          eta=1.0):
     '''
-    Apply fermion hoppping term across an arbitrary connectivity grid and
-    number of lattice sites.
+    Apply 4-cnot version of fermion hopping gate (Overleaf Fig. 6)
+    for staggered simulation with arbitrary (even) number of sites.
     Parameters
     ----------
     qc : qiskit.QuantumCircuit
@@ -90,10 +87,6 @@ def apply_fermion_hopping(qc, nsites : int, epsilon : float,
     eta : float (optional)
         Lattice anisotropy (may be needed to renormalize the speed of light).
         The default is 1.0.
-    twirl : boolean (optional)
-        whether to implement this circuit with randomized
-        compiling. The default is False.
-        NOT CURRENTLY IMPLEMENTED.
     Returns
     -------
     qc : qiskit.QuantumCircuit
@@ -103,25 +96,6 @@ def apply_fermion_hopping(qc, nsites : int, epsilon : float,
     # iterate through the even sites
     for site in range(0, nsites - 1, 2):
         q1, q2, q3 = 2 * site, 2 * site + 1, 2 * site + 2
-        qc.z(q1)
-        qc.sxdg(q2)
-        qc.s(q2)
-        qc.cx(q1, q2)
-        qc.sx(q1)
-        qc.cx(q1, q3)
-        qc.rx(epsilon * eta / 4, q1)
-        qc.ry(epsilon * eta / 4, q3)
-        qc.cx(q1, q3)
-        qc.sxdg(q1)
-        qc.cx(q1, q2)
-        qc.sdg(q2)
-        qc.sx(q2)
-        qc.z(q1)
-
-    # iterate through the odd sites
-    for site in range(1, nsites - 1, 2):
-        q1, q2, q3 = 2 * site, 2 * site + 1, 2 * site + 2
-        qc.z(q1)
         qc.sxdg(q2)
         qc.s(q2)
         qc.cx(q1, q2)
@@ -134,15 +108,30 @@ def apply_fermion_hopping(qc, nsites : int, epsilon : float,
         qc.cx(q1, q2)
         qc.sdg(q2)
         qc.sx(q2)
-        qc.z(q1)
+
+    # iterate through the odd sites
+    for site in range(1, nsites - 1, 2):
+        q1, q2, q3 = 2 * site, 2 * site + 1, 2 * site + 2
+        qc.sxdg(q2)
+        qc.s(q2)
+        qc.cx(q1, q2)
+        qc.sx(q1)
+        qc.cx(q1, q3)
+        qc.rx(-epsilon * eta / 4, q1)
+        qc.ry(-epsilon * eta / 4, q3)
+        qc.cx(q1, q3)
+        qc.sxdg(q1)
+        qc.cx(q1, q2)
+        qc.sdg(q2)
+        qc.sx(q2)
 
     return qc
 
 def apply_fermion_hopping_2sites(qc, epsilon, eta=1.0,
                                  twirl=False, richardson_level=1):
     """
-    Apply 4-cnot version of the fermion hopping gate shown in the overleaf
-    for a 2-site staggered simulation.
+    Apply 4-cnot version of fermion hopping gate (Overleaf Fig. 6)
+    for 2-site staggered simulation.
     Parameters
     ----------
     qc : qiskit.QuantumCircuit
@@ -230,14 +219,14 @@ def apply_fermion_hopping_2sites(qc, epsilon, eta=1.0,
 
     return qc
 
-#####################################################################
-############### Inline comments in code hard to follow ##############
-#####################################################################
+##############################################################
+############### Optimized layout for IBM Perth  ##############
+##############################################################
 def apply_fermion_hopping_4sites(qc, epsilon, eta=1.0,
                                  twirl=False, richardson_level=1):
     """
-    Apply 4-cnot version of the fermion hopping gate shown in the overleaf
-    for a 4-site staggered simulation.
+    Apply both 4-cnot (Overleaf Fig. 6) and 6-cnot (Overleaf Fig. 8) versions
+    of fermion hopping gate for 4-site staggered simulation on IBM Perth.
     Parameters
     ----------
     qc : qiskit.QuantumCircuit
@@ -263,10 +252,10 @@ def apply_fermion_hopping_4sites(qc, epsilon, eta=1.0,
     ncnots = richardson_level * 2 - 1
 
     # single qubit rotations for the hopping from sites 0-1 and 2-3
+    # use four-cnot circuit in Overleaf Fig. 6
     #================#
     # fermion term 1 #
     #================#
-    qc.z([0, 4])
     qc.sxdg([1, 5])
     qc.s([1, 5])
     # if twirl flag is raised apply a twirled CNOT HARD CYCLE
@@ -302,8 +291,8 @@ def apply_fermion_hopping_4sites(qc, epsilon, eta=1.0,
             qc.cx(4, 6)
     #single qubit rotions for the evolution
     #===============================
-    qc.rx(epsilon / 2, [0, 4])
-    qc.ry(epsilon / 2, [2, 6])
+    qc.rx(-epsilon / 2, [0, 4])
+    qc.ry(-epsilon / 2, [2, 6])
     # let's un do the semi-diagonalization operations across the even pairs
 
     # if twirling flag is raised apply the second CNOT gate
@@ -338,8 +327,9 @@ def apply_fermion_hopping_4sites(qc, epsilon, eta=1.0,
     #================================
     qc.sdg([1, 5])
     qc.sx([1, 5])
-    qc.z([0, 4])
+
     # now we are going to apply the fermion hopping term to the sites 1 - 2
+    # use four-cnot circuit in Overleaf Fig. 8
     #===========#
     # Fhop pt2  #
     #===========#
