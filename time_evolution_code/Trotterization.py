@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar 15 15:06:12 2022
-Last edited on Thu Mar 28 2022
+Last edited on Thu May 9 2022
 
 @authors: Erik Gustafson, Elizabeth Hardt, Norman Hogan,
           Henry Lamm, Ruth Van de Water, Mike Wagman
@@ -19,7 +19,7 @@ from qiskit.quantum_info import Operator as Operator
 
 def trotter_evolution(nsites: int, epsilon: float, mass: float,
                       ntrotter: int, twirl=False, qsim=True,
-                      richardson_level: int=1, state_prep=True):
+                      richardson_level: int=1):
     """
     Wrapper function for the various types of noiseless, noisy, and harware
     simulations that we want to do for the Z2 gauge with staggered matter
@@ -47,8 +47,6 @@ def trotter_evolution(nsites: int, epsilon: float, mass: float,
     richardson_level : int (optional)
         Determines how many times the CNOT gate is interleaved.
         # N_CNOTS = richardson_level * 2 - 1
-    state_prep : boolean, (optional)
-        whether to use a state prep circuit or not. Default is True
         
     Returns
     ----------
@@ -62,28 +60,13 @@ def trotter_evolution(nsites: int, epsilon: float, mass: float,
     # create a quantum circuit
     qc = QuantumCircuit(nqubits, nqubits)
 
-    ###############################################################
-    # prepare initial state -- eventually move to separate function
-    ###############################################################
-    # Hademard operator on gauge links puts photon qubits in + state of x basis 
-    # (recall that H|0> = |+>)
-    # needed for gauge invariance? Vacuum quantum numbers? Something else???
-    if state_prep:
-        qc.h([2 * i + 1 for i in range(nsites - 1)])
-
     # build quantum circuit for running on a quantum computer
     # using different layouts for 2 sites (3 qubits) and 4 sites (7 qubits)
     if (qsim):
         if nsites == 2:
-            if state_prep:
-                qc.x([0])
-                qc.z([1])
             qc = trotter_evolution_2sites(qc, epsilon, mass, ntrotter,
                                           twirl=twirl, richardson_level=richardson_level)
         elif nsites == 4:
-            if state_prep:
-                qc.x([2, 4])
-                qc.z([3])
             qc = trotter_evolution_4sites(qc, epsilon, mass, ntrotter,
                                           twirl=twirl, richardson_level=richardson_level)
         else:
@@ -91,12 +74,8 @@ def trotter_evolution(nsites: int, epsilon: float, mass: float,
             exception_str += "only 2- and 4-site simulation code is available."
             raise Exception(exception_str)
             
-    # build quantum circuit for running on a simulator backend
+    # build quantum circuit for arbitrary nsites to use on simulator backend
     else:
-        if state_prep:
-            mid = 2 * (nsites // 2)
-            qc.x([mid, mid + 2])
-            qc.z(mid + 1)
         qc = trotter_evolution_generic(qc, nsites, epsilon, mass, ntrotter,
                                        twirl=False, save_state_vector=True)
 
@@ -319,18 +298,15 @@ if __name__ == "__main__":
     oper = r1q @ oper
     oper = Operator(oper)
     opert = Operator(trotter_evolution_4sites(QuantumCircuit(7), dt, mass, 1))
-    # print(np.array(oper)[:10, :10], np.array(opert)[:10, :10])
     print(oper.equiv(opert))
     print('=' * 20)
     try:
-        trotter_evolution(8, 0.1, 1.0, 1, twirl=False, qsim=True,
-                          state_prep=False)
+        trotter_evolution(8, 0.1, 1.0, 1, twirl=False, qsim=True)
     except (Exception) as e:
         print('====' * 5)
         print(e)
         print('---')
         print('exception working')
     print('=' * 100)
-    trotter_evolution(8, 0.1, 1.0, 1, twirl=False, qsim=False,
-                      state_prep=False)
+    trotter_evolution(8, 0.1, 1.0, 1, twirl=False, qsim=False)
 
