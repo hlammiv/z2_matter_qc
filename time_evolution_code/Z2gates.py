@@ -2,10 +2,8 @@
 """
 Created on Tue Mar 15 15:10:00 2022
 Last edited on Last edited on Thu Mar 24 2022
-
-@authors: Erik Gustafson, Henry Lamm, Ruth Van de Water, Mike Wagman
-        also Elizabeth Hardt and Norman Hogan
-
+@authors: Erik Gustafson, Elizabeth Hardt, Norman Hogan,
+            Henry Lamm, Ruth Van de Water, and Mike Wagman
 Basic Z2 gates.
 Used to build circuits in ./Trotterization.py
 """
@@ -17,14 +15,12 @@ import sys
 sys.path.append("..")
 from scipy.linalg import expm
 
-import pauli_twirling.circuit_twirling as circuit_twirling
+#import pauli_twirling.circuit_twirling as circuit_twirling
 
 def apply_mass_terms(qc, nsites, mass, epsilon):
     '''
-
     Apply Rz(mass * epsilon / 2 (-1)^{i}) rotation
     to the even qubits corresponding to the sites.
-
     Parameters
     ----------
     qc : qiskit.QuantumCircuit
@@ -37,7 +33,6 @@ def apply_mass_terms(qc, nsites, mass, epsilon):
         the Trotter step size in time (1/a) units
     mass : float
         mass of the fermion in units of a (a=lattice spacing)
-
     Returns
     -------
     qc : qiskit.QuantumCircuit
@@ -52,7 +47,6 @@ def apply_mass_terms(qc, nsites, mass, epsilon):
 def apply_gauge_terms(qc, nsites, epsilon):
     '''
     Apply gauge rotations to the odd qubits corresponding to the links.
-
     Parameters
     ----------
     qc : qiskit.QuantumCircuit
@@ -63,7 +57,6 @@ def apply_gauge_terms(qc, nsites, epsilon):
          because there are nsites and nsites - 1 gauge links)
     epsilon : float
         the Trotter step size in time (1/a) units
-
     Returns
     -------
     qc : qiskit.QuantumCircuit
@@ -84,7 +77,6 @@ def apply_fermion_hopping(qc, nsites : int, epsilon : float,
     '''
     Apply fermion hoppping term across an arbitrary connectivity grid and
     number of lattice sites.
-
     Parameters
     ----------
     qc : qiskit.QuantumCircuit
@@ -102,7 +94,6 @@ def apply_fermion_hopping(qc, nsites : int, epsilon : float,
         whether to implement this circuit with randomized
         compiling. The default is False.
         NOT CURRENTLY IMPLEMENTED.
-
     Returns
     -------
     qc : qiskit.QuantumCircuit
@@ -152,7 +143,6 @@ def apply_fermion_hopping_2sites(qc, epsilon, eta=1.0,
     """
     Apply 4-cnot version of the fermion hopping gate shown in the overleaf
     for a 2-site staggered simulation.
-
     Parameters
     ----------
     qc : qiskit.QuantumCircuit
@@ -168,7 +158,6 @@ def apply_fermion_hopping_2sites(qc, epsilon, eta=1.0,
     richardson_level : int (optional)
         Determines how many times the CNOT gate is interleaved.
         # N_CNOTS = richardson_level * 2 - 1
-
     Returns
     -------
     qc : qiskit.QuantumCircuit
@@ -179,7 +168,7 @@ def apply_fermion_hopping_2sites(qc, epsilon, eta=1.0,
     ncnots = richardson_level * 2 - 1
 
     # apply the unitary to semi-diagonalize the fermion hopping gate
-    qc.z(0)
+    # qc.z(0)
     qc.sxdg(1)
     qc.s(1)
 
@@ -207,8 +196,8 @@ def apply_fermion_hopping_2sites(qc, epsilon, eta=1.0,
             qc.cx(0, 2)
 
     # apply the single qubit phase rotations
-    qc.rx(epsilon * eta / 4, 0)
-    qc.ry(epsilon * eta / 4, 2)
+    qc.rx(-epsilon * eta / 4, 0)
+    qc.ry(-epsilon * eta / 4, 2)
 
     # now we begin the process of inverting the semi-diagonalizing operator
     # twirl the cnot if flag is raised
@@ -237,7 +226,7 @@ def apply_fermion_hopping_2sites(qc, epsilon, eta=1.0,
     # final single qubit gates
     qc.sdg(1)
     qc.sx(1)
-    qc.z(0)
+    # qc.z(0)
 
     return qc
 
@@ -249,7 +238,6 @@ def apply_fermion_hopping_4sites(qc, epsilon, eta=1.0,
     """
     Apply 4-cnot version of the fermion hopping gate shown in the overleaf
     for a 4-site staggered simulation.
-
     Parameters
     ----------
     qc : qiskit.QuantumCircuit
@@ -265,7 +253,6 @@ def apply_fermion_hopping_4sites(qc, epsilon, eta=1.0,
     richardson_level : int (optional)
         Determines how many times the CNOT gate is interleaved.
         # N_CNOTS = richardson_level * 2 - 1
-
     Returns
     -------
     qc : qiskit.QuantumCircuit
@@ -419,5 +406,3 @@ def apply_fermion_hopping_4sites(qc, epsilon, eta=1.0,
     qc.sdg([2, 4])
 
     return qc
-
-
