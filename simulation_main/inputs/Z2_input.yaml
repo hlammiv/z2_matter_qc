@@ -4,24 +4,27 @@ account_info:
   group: "fermilab-1"
   project: "qjs-for-hep"
 
+
+backend_opts:
+  machine: "least_busy"      # specify machine name or choose "least_busy" to run on any machine
+  qasm_simulator: True       # if True, usq ibmq_qasm_simulator 
+  noise_model: "ibmq_belem"  # choose None or device backend for noise model
+
 simulation_opts:
   lattice_params:
-    mass: 1.0
-    nsites: 2 
-    tf: 2
-  circuit_opts:
-    ntrotter: 5
-    pauli_twirling:
-      twirl: false
-      ntwirls: 1
-    richardson_level: 1  
-  qasm_simulation: 
-    simulation: true
-    sim_noise: "ibmq_belem"
+    mass: 1.0            # fermion mass in lattice-spacing units (a*m)
+    nsites: 2            # number of lattice sites (must be even)
+  time_evolution:
+    tf: 2                # total time interval in lattice-spacing units (Delta(t)/a)
+    ntrotter: 5          # number of trotter steps (step size epsilon = tf/ntrotter)
+  pauli_twirling:
+    twirl: False         # if True, apply Pauli twirling
+    ntwirls: 1           # number of Pauli twirls
+  richardson_level: 1    # number of CNOTs for Richardson smearing
 
 runtime_opts:
   program_id: "circuit-runner"
-  nshots: 1000
-  readout_error_mitigation: true
-  memory: true
-  optimization_level: 1
+  nshots: 1000                     # number of shots per simulation
+  readout_error_mitigation: True   # if True, correct for readout error using calibration matrix
+  memory: True                     # if True, save results for each shot
+  optimization_level: 1            #for circuit transpiler: 1 is least optimized and 3 is most optimized
