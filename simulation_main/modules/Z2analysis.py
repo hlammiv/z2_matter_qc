@@ -1,16 +1,42 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Fri Mar 25 2022
-Last edited on Fri Mar 24 2022
+Last edited on Tue May 10 2022
 
-@authors: Clement Charles, Florian Herren
-        Sara Starecheski, Ruth Van de Water
+@authors: Clement Charles, Florian Herren, Sara Starecheski, Ruth Van de Water
           
 Analyze output of Z2 gauge theory simulation
+Will expand comments later
 """
 
 import numpy as np
 from typing import Optional
+
+# calculate number of qubits given number of lattice sites
+def nsites2nqubits(ns : int):
+    nq = 2*ns-1
+    return int(nq)
+
+# calculate number of lattice sites given number of qubits
+def nqubits2nsites(nq : int):
+    ns = (nq+1)/2
+    return int(ns)
+
+# calculate net charge of z-basis state given as string of 0s and 1s
+def net_charge(state : str):
+    # initialize to zero
+    Qnet = 0
+    
+    # loop through even sites
+    for s in state[0::4]:
+        if (s == '1'):
+            Qnet += 1
+            
+    for s in state[2::4]:
+        if (s == '1'):
+            Qnet += -1
+        
+    return Qnet
 
 def get_particle_number(counts, nshots: int, n: int, nboots: Optional[int] = None):
     """
@@ -21,7 +47,7 @@ def get_particle_number(counts, nshots: int, n: int, nboots: Optional[int] = Non
     ----------
     counts : qiskit.result.counts.Counts
         
-    nshots : int
+    nshots : int 
         number of shots in quantum simulation
     n : int
         index of the qubit for which we want the mean occupancy
