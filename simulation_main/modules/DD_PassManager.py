@@ -22,7 +22,7 @@ def DD_PassManager(circuits: list, DD_sequence: str, providerstr: list, backends
     """
     This code builds the Pass Manager (PM) for dynamical decoupling (DD). Once the PM is 
     created, the input circuits are then ran through it to insert DD. Three DD sequences are 
-    supported for this function: CPMG, XY4, and EDD. The sequences are represented like so:
+    supported for this function: CPMG, XY4, and EDD. The sequences are built like so:
 
                 CPMG:    f/2 - X - f - X - f/2
                 XY4:     Y - f - X - f - Y - f - X - f
@@ -69,8 +69,8 @@ def DD_PassManager(circuits: list, DD_sequence: str, providerstr: list, backends
 
     #Initialize delay spacing for each sequence (Must sum up to 1):
     f_CPMG = [1/4,1/2,1/4]
-    f_XY4 = [0,0,d/4,d/4,0,d/4,d/4]
-    f_EDD = [0,d/8,0,d/8,d/8,0,d/8,0,d/8,d/8,0,d/8,d/8]
+    f_XY4 = [0,0,1/4,1/4,0,1/4,1/4]
+    f_EDD = [0,1/8,0,1/8,1/8,0,1/8,0,1/8,1/8,0,1/8,1/8]
 
     #Get the provider for the backend:
     provider = IBMQ.get_provider(hub=providerstr[0], 
