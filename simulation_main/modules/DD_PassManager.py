@@ -17,28 +17,53 @@ from qiskit.circuit.library import XGate, RZGate
 from qiskit.transpiler import PassManager, InstructionDurations
 from qiskit.transpiler.passes import ALAPSchedule, DynamicalDecoupling
 
-def DD_PassManager(circuits: list, DD_sequence: str, providerstr: list, backendstr: str):
+"""
+This code builds the Pass Manager (PM) for dynamical decoupling (DD). Once the PM is 
+created, the input circuits are then ran through it to insert DD. Three DD sequences are 
+supported for this function: CPMG, XY4, and EDD [elaborated in arXiv:2207.03670v1]. 
+
+*   CPMG works best as first order protection for decoupling states near the equator of the 
+    Bloch sphere (|+> or |->) with uncertainty from the assumption of perfect pulses. 
+*   XY4 is universal first order protection, but also with uncertainty from the assumption of 
+    perfect pulses. 
+*   EDD is the most universal first order protection using only pi pulses with more accurate 
+    assumptions of an imperfect pulse with finite width, but is a long sequence that is not 
+    compatible with every quantum computer (see table below). 
+
+The sequences are built like so:
+
+            CPMG:    f/2 - X - f - X - f/2
+            XY4:     Y - f - X - f - Y - f - X - f
+            EDD:     X - f - Y - f - X - f - Y - f - Y - f - X - f - Y - f - X - f
+
+where f represents a constant delay period between each gate in the sequence, which is 
+automatically determined by the PM. This function assumes that the circuits passed through 
+it are already transpiled, so the circuits returned by the function are then ready to be run 
+on the quantum computer.
+
+NOTE: Not all quantum computers can support XY4 or EDD sequences. If a CNOT operation 
+time of a given machine is around 280 nanoseconds or less, it will likely be unable to 
+implement the EDD sequence. For some machines, if a delay operation time is not a multiple 
+of 16, the job will not run.
+Here are the different machines and their compatibility with implementing each sequence:
+
+                  CPMG     XY4      EDD  
+    ------------------------------------            
+    ibmq_lima:    Yes      Yes      Yes |
+    ibmq_belem:   Yes      Yes      Yes |
+    ibmq_quito:   Yes      Yes      No  | EDD incompatible operations: cx(1,0),cx(3,4)
+    ibmq_manila:  Yes      Yes      Yes |
+    ibmq_jakarta: Yes      Yes      No  | EDD incompatible operations: cx(1,0),cx(1,2),cx(3,5),cx(5,6)
+    ibm_oslo:     Yes      No       No  | EDD incompatible operations: cx(1,2),cx(3,5),cx(5,6)
+    ibm_nairobi:  Yes      Yes      No  | EDD incompatible operations: cx(1,0),cx(3,5),cx(5,4)
+    ibm_lagos:    Yes      Yes      No  | EDD incompatible operations: cx(1,2),cx(3,5),cx(5,6)
+    ibm_perth:    Yes      Yes      No  | EDD incompatible operations: cx(1,2),cx(3,5),cx(5,6)
+
+"""
+
+    def DD_PassManager(circuits: list, DD_sequence: str, providerstr: list, backendstr: str):
 
     """
-    This code builds the Pass Manager (PM) for dynamical decoupling (DD). Once the PM is 
-    created, the input circuits are then ran through it to insert DD. Three DD sequences are 
-    supported for this function: CPMG, XY4, and EDD. The sequences are built like so:
-
-                CPMG:    f/2 - X - f - X - f/2
-                XY4:     Y - f - X - f - Y - f - X - f
-                EDD:     X - f - Y - f - X - f - Y - f - Y - f - X - f - Y - f - X - f
-
-    where f represents a constant delay period between each gate in the sequence. This 
-    function assumes that the circuits passed through it are already transpiled, so the 
-    circuits returned by the function are then ready to be run on the quantum computer.
-
-    NOTE: Not all quantum computers can support XY4 or EDD sequences. If a CNOT operation 
-    time of a given machine is around 235 nanoseconds or less, it will likely be unable to 
-    implement the XY4 or EDD sequence (This seems to be the case for ibmq_quito and possibly 
-    for others). It is useful to manually check if the DD was implemented before running the 
-    jobs.
-
-
     Parameters
     ----------
     circuits: list 
@@ -90,7 +115,6 @@ def DD_PassManager(circuits: list, DD_sequence: str, providerstr: list, backends
         pm = PassManager([ALAPSchedule(instruct), 
                    DynamicalDecoupling(instruct, CPMG, spacing=f_CPMG)])
 
-
     #Implement XY4 DD sequence if specified:
     elif DD_sequence == 'XY4':
 
@@ -107,10 +131,8 @@ def DD_PassManager(circuits: list, DD_sequence: str, providerstr: list, backends
 
 
 
-    #Run the PM on each of the transpiled circuits
-        for i in range(len(circuits)):
-
-            DD_circuits.append(pm.run(circuits[i]))
+    #Run the PM on the transpiled circuits
+    DD_circuits = pm.run(circuits)
 
 
     return DD_circuits
