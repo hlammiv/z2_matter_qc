@@ -19,7 +19,7 @@ def nsites2nqubits(ns : int):
 
 # calculate number of lattice sites given number of qubits
 def nqubits2nsites(nq : int):
-    ns = (nq+1)/2
+    ns = (nq+1)//2
     return int(ns)
 
 # calculate net charge of z-basis state given as string of 0s and 1s

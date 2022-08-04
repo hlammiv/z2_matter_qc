@@ -9,6 +9,7 @@ Prepare gauge-invariant basis states for Z2 gauge theory simulation
 Still need to write general function for arbitrary number of states/qubits
 """
 
+from qiskit import QuantumCircuit
 ## The functions below all return `qiskit.QuantumCircuit` objects.
 
 def prepare_zbasis_state(nq : int, state : list):

@@ -58,7 +58,7 @@ def trotter_evolution(nsites: int, epsilon: float, mass: float,
     nqubits = 2 * nsites - 1
     
     # create a quantum circuit
-    qc = QuantumCircuit(nqubits, nqubits)
+    qc = QuantumCircuit(nqubits)
 
     # build quantum circuit for running on a quantum computer
     # using different layouts for 2 sites (3 qubits) and 4 sites (7 qubits)
