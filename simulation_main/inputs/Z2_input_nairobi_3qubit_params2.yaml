@@ -1,34 +1,34 @@
 ---
 account_info:
   hub: "ibm-q"
-  group: "open"
-  project: "main"
+  group: "fermilab-1"
+  project: "qjs-for-hep"
 
 
 backend_opts:
-  machine: "ibmq_qasm_simulator"      # specify machine name or choose "least_busy" to run on any machine
-  qasm_simulator: True      # if True, usq ibmq_qasm_simulator 
-  noise_model: "None"  # choose None or device backend for noise model
+  machine: "ibm_nairobi"      # specify machine name or choose "least_busy" to run on any machine
+  qasm_simulator: False       # if True, usq ibmq_qasm_simulator 
+  noise_model: "ibmq_belem"  # choose None or device backend for noise model
 
 simulation_opts:
   layout:
-    initial_layout: [0, 1, 2, 3, 4, 5, 6] # need to optimize this to specific machine pick the best qubits
+    initial_layout: [5, 4, 6] # need to optimize this to specific machine pick the best qubits
   lattice_params:
     mass: 2.0            # fermion mass in lattice-spacing units (a*m)
-    nsites: 4           # number of lattice sites (must be even)
+    nsites: 2           # number of lattice sites (must be even)
   time_evolution:
-    tf: 6               # total time interval in lattice-spacing units (Delta(t)/a)
+    tf: 6                # total time interval in lattice-spacing units (Delta(t)/a)
     ntrotter: 20        # number of trotter steps (step size epsilon = tf/ntrotter)
   pauli_twirling:
-    twirl: False          # if True, apply Pauli twirling
-    ntwirls: 1          # number of Pauli twirls
+    twirl: True          # if True, apply Pauli twirling
+    ntwirls: 30          # number of Pauli twirls
   dynamic_decoupling:
     method: None         # if None apply no dynamic decoupling otherwise apply XY4 or CMPQ
   richardson_level: 1    # number of CNOTs for Richardson smearing
 
 runtime_opts:
   program_id: "circuit-runner"
-  nshots: 1000                     # number of shots per simulation
+  nshots: 2000                     # number of shots per simulation
   readout_error_mitigation: True   # if True, correct for readout error using calibration matrix
   memory: True                     # if True, save results for each shot
   optimization_level: 1            #for circuit transpiler: 1 is least optimized and 3 is most optimized
