@@ -13,6 +13,7 @@ from qiskit.compiler import transpile
 import numpy as np
 from numpy import pi as pi
 import random
+from qiskit import IBMQ
 from qiskit.circuit.library import XGate, RZGate
 from qiskit.transpiler import PassManager, InstructionDurations
 from qiskit.transpiler.passes import ALAPSchedule, DynamicalDecoupling
@@ -60,8 +61,7 @@ Here are the different machines and their compatibility with implementing each s
     ibm_perth:    Yes      Yes      No  | EDD incompatible operations: cx(1,2),cx(3,5),cx(5,6)
 
 """
-
-    def DD_PassManager(circuits: list, DD_sequence: str, providerstr: list, backendstr: str):
+def DD_PassManager(circuits: list, DD_sequence: str, providerstr: list, backendstr: str):
 
     """
     Parameters

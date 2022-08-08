@@ -264,65 +264,81 @@ def apply_fermion_hopping_4sites(qc, epsilon, eta=1.0,
     if twirl:
         # iterate the twirled cnots
         for n in range(ncnots):
-            qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(0, 1), (4, 5)])
+#             qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(0, 1), (4, 5)])
+            qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(2, 1), (4, 5)])
     # otherwise just a regular cnot across (2, 1) and (4, 5)
     else:
         # iterate the untwirled cnots
         for n in range(ncnots):
             qc.barrier(0, 1)
-            qc.barrier(4, 5)
-            qc.cx(0, 1)
+#             qc.barrier(4, 5)
+            qc.barrier(6, 5)
+#             qc.cx(0, 1)
+            qc.cx(2, 1)
             qc.cx(4, 5)
     # single qubit gate rotation
     #================================
-    qc.sx([0, 4])
+#     qc.sx([0, 4])
+    qc.sx([2, 4])
     # if twirling flag is raised apply the second CNOT gate
     if twirl:
         # iterate the twirled cnots
         for n in range(ncnots):
-            qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(0, 2), (4, 6)])
+#             qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(0, 2), (4, 6)])
+            qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(2, 0), (4, 6)])
     # otherwise just apply a plain old cnot across 2-0 and 4-6
     else:
         # iterate the untwirled cnots
         for n in range(ncnots):
-            qc.barrier(0, 2)
+#             qc.barrier(0, 2)
+            qc.barrier(2, 0)
             qc.barrier(4, 6)
-            qc.cx(0, 2)
+#             qc.cx(0, 2)
+            qc.cx(2, 0)
             qc.cx(4, 6)
     #single qubit rotions for the evolution
     #===============================
-    qc.rx(-epsilon / 2, [0, 4])
-    qc.ry(-epsilon / 2, [2, 6])
+#     qc.rx(-epsilon / 2, [0, 4])
+#     qc.ry(-epsilon / 2, [2, 6])
+    qc.rx(-epsilon / 2, [2, 4])
+    qc.ry(-epsilon / 2, [0, 6])
     # let's un do the semi-diagonalization operations across the even pairs
 
     # if twirling flag is raised apply the second CNOT gate
     if twirl:
         # iterate the twirled cnots
         for n in range(ncnots):
-            qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(0, 2), (4, 6)])
+#             qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(0, 2), (4, 6)])
+            qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(2, 0), (4, 6)])
     # otherwise just apply a plain old cnot across 2-0 and 4-6
     else:
         # iterate the untwirled cnots
         for n in range(ncnots):
+#             qc.barrier(0, 2)
             qc.barrier(0, 2)
             qc.barrier(4, 6)
-            qc.cx(0, 2)
+#             qc.cx(0, 2)
+            qc.cx(2, 0)
             qc.cx(4, 6)
     #===============================
-    qc.sxdg([0, 4])
+#     qc.sxdg([0, 4])
+    qc.sxdg([2, 4])
     #=========================
     #=========================
     if twirl:
         # iterate the twirled cnots
         for n in range(ncnots):
-            qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(0, 1), (4, 5)])
+#             qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(0, 1), (4, 5)])
+            qc = circuit_twirling.twirl_hard_cycle(qc, 7, [(2, 1), (4, 5)])
     # otherwise just a regular cnot across (2, 1) and (4, 5)
     else:
         # iterate the cnots
         for n in range(ncnots):
-            qc.barrier(0, 1)
+#             qc.barrier(0, 1)
+            qc.barrier(2, 1)
             qc.barrier(4, 5)
-            qc.cx(0, 1)
+#             qc.cx(0, 1)
+            qc.cx(2, 1)
             qc.cx(4, 5)
     #================================
     qc.sdg([1, 5])
