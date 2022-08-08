@@ -7,7 +7,7 @@ account_info:
 
 backend_opts:
   machine: "least_busy"      # specify machine name or choose "least_busy" to run on any machine
-  qasm_simulator: True       # if True, usq ibmq_qasm_simulator 
+  qasm_simulator: False       # if True, usq ibmq_qasm_simulator 
   noise_model: "ibmq_belem"  # choose None or device backend for noise model
 
 simulation_opts:

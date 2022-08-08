@@ -1,8 +1,8 @@
 ---
 account_info:
   hub: "ibm-q"
-  group: "fermilab-1"
-  project: "qjs-for-hep"
+  group: "open"
+  project: "main"
 
 
 backend_opts:
@@ -23,7 +23,7 @@ simulation_opts:
     twirl: True          # if True, apply Pauli twirling
     ntwirls: 30          # number of Pauli twirls
   dynamic_decoupling:
-    method: None         # if None apply no dynamic decoupling otherwise apply XY4 or CMPQ
+    method: 'XY4'         # if None apply no dynamic decoupling otherwise apply XY4 or CMPQ
   richardson_level: 1    # number of CNOTs for Richardson smearing
 
 runtime_opts:
