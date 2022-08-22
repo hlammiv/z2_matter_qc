@@ -1,6 +1,6 @@
 ---
 account_info:
-  hub: "ibm-q"
+  hub: "ibm-q-education"
   group: "fermilab-1"
   project: "qjs-for-hep"
 
