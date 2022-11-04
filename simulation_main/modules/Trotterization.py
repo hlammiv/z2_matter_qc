@@ -133,7 +133,7 @@ def trotter_evolution_generic(qc, nsites: int, epsilon: float,
         qc = Z2gates.apply_gauge_terms(qc, nsites, epsilon)
 
         # apply the fermion hopping term across the qubits
-        qc = Z2gates.apply_fermion_hopping(qc, nsites, epsilon, eta=1.0, twirl=False)
+        qc = Z2gates.apply_fermion_hopping(qc, nsites, epsilon, eta=1.0)
 
         # apply the rotations corresponding to the mass operators
         qc = Z2gates.apply_mass_terms(qc, nsites, mass, epsilon)
