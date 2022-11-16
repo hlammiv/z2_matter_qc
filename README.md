@@ -7,6 +7,6 @@ The `./main/inputs` folder will contain `yaml` files with simulation parameters 
 
 The `./main/json` folder will contain each run's info, input, and output `json` files.
 
-The remaining folders are for literature (currently empty) and code development and testing.
+The remaining folders are for literature and code development and testing.
 
 This Branch is for the Hadronic Tensor Code will be merged with the main branch when testing is completed
