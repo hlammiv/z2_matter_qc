@@ -16,7 +16,9 @@ import random
 from qiskit import IBMQ
 from qiskit.circuit.library import XGate, RZGate
 from qiskit.transpiler import PassManager, InstructionDurations
-from qiskit.transpiler.passes import ALAPSchedule, DynamicalDecoupling
+from qiskit.transpiler.passes import ALAPScheduleAnalysis, DynamicalDecoupling, PadDynamicalDecoupling
+from qiskit.transpiler.passes import ALAPSchedule
+
 
 """
 This code builds the Pass Manager (PM) for dynamical decoupling (DD). Once the PM is 
@@ -113,27 +115,36 @@ def DD_PassManager(circuits: list, DD_sequence: str, providerstr: list, backends
 
         #Build the pass manager with CPMG DD:
         pm = PassManager([ALAPSchedule(instruct), 
-                   DynamicalDecoupling(instruct, CPMG, spacing=f_CPMG)])
+               DynamicalDecoupling(instruct, CPMG, spacing=f_CPMG)])
+        pm2 = PassManager([ALAPScheduleAnalysis(instruct), 
+               PadDynamicalDecoupling(instruct, CPMG, spacing=f_CPMG, pulse_alignment=16)])#,
+#                    PadDynamicalDecoupling(instruct, CPMG, spacing=f_CPMG, pulse_alignment=16)])
 
     #Implement XY4 DD sequence if specified:
     elif DD_sequence == 'XY4':
 
         #Build the pass manager with XY4 DD:
         pm = PassManager([ALAPSchedule(instruct), 
-                   DynamicalDecoupling(instruct, XY4, spacing=f_XY4)])
+                 DynamicalDecoupling(instruct, XY4, spacing=f_XY4)])
+        pm2 = PassManager([ALAPScheduleAnalysis(instruct), 
+                 PadDynamicalDecoupling(instruct, XY4, spacing=f_XY4, pulse_alignment=16)])#,
+#                    PadDynamicalDecoupling(instruct, XY4, spacing=f_XY4, pulse_alignment=16)])
 
     #Implement EDD DD sequence if specified:
     elif DD_sequence == 'EDD':
 
         #Build the pass manager with EDD DD:
         pm = PassManager([ALAPSchedule(instruct), 
-                   DynamicalDecoupling(instruct, EDD, spacing=f_EDD)])
+                DynamicalDecoupling(instruct, EDD, spacing=f_EDD)])
+        pm2 = PassManager([ALAPScheduleAnalysis(instruct), 
+                PadDynamicalDecoupling(instruct, EDD, spacing=f_EDD, pulse_alignment=16)])#,
+#                    PadDynamicalDecoupling(instruct, EDD, spacing=f_EDD, pulse_alignment=16)])
 
 
 
     #Run the PM on the transpiled circuits
-    DD_circuits = pm.run(circuits)
-
+#     DD_circuits = pm.run(circuits)
+    DD_circuits = pm2.run(circuits)
 
     return DD_circuits
 

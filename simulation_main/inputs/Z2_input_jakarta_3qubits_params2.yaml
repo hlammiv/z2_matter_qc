@@ -1,13 +1,13 @@
 ---
 account_info:
-  hub: "ibm-q"
+  hub: "ibm-q-education"
   group: "fermilab-1"
   project: "qjs-for-hep"
 
 
 backend_opts:
   machine: "ibmq_jakarta"      # specify machine name or choose "least_busy" to run on any machine
-  qasm_simulator: True       # if True, usq ibmq_qasm_simulator 
+  qasm_simulator: False      # if True, usq ibmq_qasm_simulator 
   noise_model: None #"ibmq_belem"  # choose None or device backend for noise model
 
 simulation_opts:
