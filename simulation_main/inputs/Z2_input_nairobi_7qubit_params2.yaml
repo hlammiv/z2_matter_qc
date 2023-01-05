@@ -8,7 +8,11 @@ account_info:
 backend_opts:
   machine: "ibm_nairobi"      # specify machine name or choose "least_busy" to run on any machine
   qasm_simulator: False       # if True, usq ibmq_qasm_simulator 
+<<<<<<< Updated upstream
   noise_model: "ibmq_belem"  # choose None or device backend for noise model
+=======
+  noise_model: None  # choose None or device backend for noise model
+>>>>>>> Stashed changes
 
 simulation_opts:
   layout:
@@ -20,7 +24,7 @@ simulation_opts:
     tf: 6                # total time interval in lattice-spacing units (Delta(t)/a)
     ntrotter: 20        # number of trotter steps (step size epsilon = tf/ntrotter)
   pauli_twirling:
-    twirl: True          # if True, apply Pauli twirling
+    twirl: False          # if True, apply Pauli twirling
     ntwirls: 30          # number of Pauli twirls
   dynamic_decoupling:
     method: 'XY4'        # if None apply no dynamic decoupling otherwise apply XY4 or CMPQ
