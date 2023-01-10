@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jan  5 08:24:20 2023
+
+@author: egustafs
+"""
+
+
+file0N = '''NormanData/no_twirl_simulation_production_run_on_ibm_nairobi_
+           data=2023-01-03_7qubits_ceq41lju4l1fkdjq3dlg.csv'''
+file1N = '''NormanData/FinalData/simulation_production_run_on_ibm_nairobi_
+        data=2022-09-12_7qubits_ccfpd42pr43cku82ufkg.csv'''
+file2N = '''NormanData/FinalData/simulation_production_run_on_ibm_nairobi_
+        data=2022-09-14_7qubits_6320fab55ccea78b019435f8.csv'''
+file3N = '''NormanData/FinalData/no_twirl_dd_simulation_production_run_on_
+        ibm_nairobi_data=2023-01-04_3qubits_63b4a7bbe9c45ab44a611871.csv'''
+file4N = '''NormanData/simulation_production_run_on_ibmq_jakarta_
+        data=2023-01-04_3qubits_cer3g3oc7aa76laosflg.csv'''
+
+
+file0C = '''ClementData/no_twirl_simulation_production_run_on_ibm_nairobi_
+        data=2023-01-03_3qubits_ceq42870c79flplhsis0.csv'''
+file1C = '''ClementData/simulation_production_run_on_ibm_nairobi_
+        data=2022-09-10_3qubits_cbqi25b4fms1nkdes8fg.csv'''
+file2C = '''ClementData/[DD]simulation_production_run_on_ibm_nairobi_
+        data=2022-09-10_3qubits_63067c74e9f73b717085437c.csv'''
+file3C = '''ClementData/no_twirl_dd_simulation_production_run_on_ibm_nairobi_
+        data=2023-01-04_3qubits_63b4a7bbe9c45ab44a611871.csv'''
+file4C = '''ClementData/simulation_production_run_on_ibmq_jakarta_
+            data=2023-01-04_7qubits_cer2slve2dgblp3nfd80.csv'''
+
+file0E = '''ElizabethData/notwirl_simulation_production_run_on_ibmq_jakarta_
+        data=2023-01-03_7qubits_ceq5r5u3ckj0h3h00te0.csv'''
+file1E = '''ElizabethData/7qubit_slapdashrun_main_ibmq_jakarta.csv'''
+file2E = '''ElizabethData/7qubit_slapdashrun_with_dynamic_decouple_ibmq_
+        jakarta.csv'''
+file3E = '''ElizabethData/no_twirl_dd_simulation_production_run_on_ibmq_
+        jakarta_data=2023-01-04_7qubits_63b58995ccb3671fe6d75d2a.csv'''
+file4E = '''ElizabethData/simulation_production_run_on_ibm_nairobi_
+        data=2023-01-05_7qubits_cer4e5gc7aa76lap2j7g'''
+
+file0S = '''SarahData/notwirl_simulation_production_run_on_ibmq_jakarta_
+        data=2023-01-03_3qubits_ceq5tnbu4l1fkdjq6esg.csv'''
+file1S = '''SarahData/simulation_production_run_on_ibmq_jakarta_
+        data=2022-08-27_3qubits_cc4k6pr9k0hjph7mmrd0.csv'''
+file2S = '''SarahData/simulation_production_run_on_ibmq_jakarta_
+        data=2022-09-22_3qubits_632ccd160cfeefcb807de983.csv'''
+file3S = '''SarahData/no_twirl_dd_simulation_production_run_on_ibmq_jakarta_
+        data=2023-01-04_3qubits_63b58edd38d550e80d676096.csv'''
+file4S = '''SarahData/simulation_production_run_on_ibm_nairobi_
+        data=2023-01-04_3qubits_cer3v5v5otekiij83360.csv'''
+        
+        
+
+def retrieve_files():
+    Norman = [file0N, file1N, file2N, file3N, file4N]
+    Clement = [file0C, file1C, file2C, file3C, file4C]
+    Elizabeth = [file0E, file1E, file2E, file3E, file4E]
+    Sarah = [file0S, file1S, file2S, file3S, file4S]
+    ret_dict = {}
+    num_files = 5
+    holder = []
+    for i in range(num_files):
+        string = Norman[i].replace('\n', '')
+        holder.append(string)
+    ret_dict['N'] = holder
+    holder = []
+    for i in range(num_files):
+        string = Clement[i].replace('\n', '')
+        holder.append(string)
+    ret_dict['C'] = holder
+    holder = []
+    for i in range(num_files):
+        string = Elizabeth[i].replace('\n', '')
+        holder.append(string)
+    ret_dict['E'] = holder
+    holder = []
+    for i in range(num_files):
+        string = Sarah[i].replace('\n', '')
+        holder.append(string)
+    ret_dict['S'] = holder
+    return ret_dict
+        
+if __name__ == "__main__":
+    return_files()
