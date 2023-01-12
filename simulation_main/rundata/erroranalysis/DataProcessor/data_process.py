@@ -96,7 +96,7 @@ class DataAnalysis(object):
         -------
     
         '''
-        drc = ''#'../../'
+        drc = '../../'#'../../'
         if nqubits != 3 and nqubits != 7:
             print(f'nqubits was {nqubits}. Nqubits must be 3 or 7')
         elif nqubits == 7 and paramnum == 2:
@@ -339,18 +339,85 @@ class DataAnalysis(object):
         counts1, counts2 = counts_list
         # iterate through the keys in counts1
         for key0 in counts1.keys():
-            matrices, norm = self.buildReadoutMatrixFromCounts(counts1[key0],
-                                                                counts2[key0],
-                                                                key0)
+            matrices = np.zeros((key0[0], 2, 2), dtype=gv._gvarcore.GVar)
+            # build first direction values
+            vec1 = np.zeros((2 ** key0[0]))
+            norm1 = sum(counts1[key0].values())
+            for key in counts1[key0].keys():
+                keya = np.binary_repr(int(key, 16),
+                                      width=key0[0] * 2)[:key0[0]]
+                index = int(keya, 2)
+                vec1[index] += counts1[key0][key] / norm1
+            sdev1 = np.diag(vec1)
+            cov1 = sdev1 - np.outer(vec1, vec1)
+            cov1 /= norm1
+            vec_1 = gv.gvar(vec1, cov1)
+            # build second direction vector
+            vec1 = np.zeros((2 ** key0[0]))
+            norm1 = sum(counts2[key0].values())
+            for key in counts2[key0].keys():
+                keya = np.binary_repr(int(key, 16),
+                                      width=key0[0] * 2)[:key0[0]]
+                index = int(keya, 2)
+                print(key, index)
+                vec1[index] += counts2[key0][key] / norm1
+            sdev1 = np.diag(vec1)
+            cov1 = sdev1 - np.outer(vec1, vec1)
+            cov1 /= norm1
+            vec_2 = gv.gvar(vec1, cov1)
             
-            std = np.sqrt(matrices - matrices ** 2) / np.sqrt(norm)
-            gvm = [gv.gvar(matrices[j], std[j]) for j in range(key0[0])]
-            gvm_inv = np.array([gv.linalg.inv(m) for m in gvm])
-            calibration_matrix = np.identity(1, dtype=gv._gvarcore.GVar)
+            for j in range(len(vec_2)):
+                key = np.binary_repr(j, width=key0[0])
+                for k in range(key0[0]):
+                    if key[k] == '1':
+                        matrices[k, 0, 1] += vec_1[j]
+                        matrices[k, 1, 1] += vec_2[j]
+                    else:
+                        matrices[k, 0, 0] += vec_1[j]
+                        matrices[k, 1, 0] += vec_2[j]
+            gvm_inv = np.array([gv.linalg.inv(matrices[j])
+                                for j in range(matrices.shape[0])])
+            calibration_matrices = np.identity(1, dtype=gv._gvarcore.GVar)
             for matrix in gvm_inv:
-                calibration_matrix = np.kron(calibration_matrix, matrix)
-            cal_mats[key0] = calibration_matrix
+                calibration_matrices = np.kron(calibration_matrices, matrix)
+            cal_mats[key0] = calibration_matrices
         self.cal_mats = cal_mats
+            # print(gv.evalcov(matrices))
+        #     matrices, norm = self.buildReadoutMatrixFromCounts(counts1[key0],
+        #                                                         counts2[key0],
+        #                                                         key0)
+            
+        #     std = np.sqrt(matrices - matrices ** 2) / np.sqrt(norm)
+        #     gvm = [gv.gvar(matrices[j], std[j]) for j in range(key0[0])]
+        #     gvm_inv = np.array([gv.linalg.inv(m) for m in gvm])
+        #     calibration_matrix = np.identity(1, dtype=gv._gvarcore.GVar)
+        #     for matrix in gvm_inv:
+        #         calibration_matrix = np.kron(calibration_matrix, matrix)
+        #     cal_mats[key0] = calibration_matrix
+        # self.cal_mats = cal_mats
+        
+        
+    # def constructReadoutConfusionMatrixGvar(self, counts_list : list):
+        
+        
+    #     # generate a dictionary to hold the calibration matrices
+    #     cal_mats = {}
+    #     # the counts lists for measuring all 0 and measuring all 1
+    #     counts1, counts2 = counts_list
+    #     # iterate through the keys in counts1
+    #     for key0 in counts1.keys():
+    #         matrices, norm = self.buildReadoutMatrixFromCounts(counts1[key0],
+    #                                                             counts2[key0],
+    #                                                             key0)
+            
+    #         std = np.sqrt(matrices - matrices ** 2) / np.sqrt(norm)
+    #         gvm = [gv.gvar(matrices[j], std[j]) for j in range(key0[0])]
+    #         gvm_inv = np.array([gv.linalg.inv(m) for m in gvm])
+    #         calibration_matrix = np.identity(1, dtype=gv._gvarcore.GVar)
+    #         for matrix in gvm_inv:
+    #             calibration_matrix = np.kron(calibration_matrix, matrix)
+    #         cal_mats[key0] = calibration_matrix
+    #     self.cal_mats = cal_mats
 
     
     def constructReadoutConfusionMatrixRegular(self, counts_list : list):
@@ -385,7 +452,116 @@ class DataAnalysis(object):
     observable calculation functions
     ========================================================================
     '''
+    
     def getTwirlDDGvar(self, keya: tuple):
+        '''
+        
+        return the twirled circuits as gvars with and without readout
+        error mitigation
+        
+        Parameters
+        ----------
+        keya : tuple
+            key indicating which simulation run to select from
+        
+        as_gvar : bool
+            whether to return the array as a gvar or as a single vector
+        
+        Returns
+        -------
+        
+            
+        vec_twirled_raw_1 : numpy array
+            vector of the twirling circuits counts without going through
+            the calibration matrix
+            
+        vec_twirled_raw_1 : numpy array
+            vector of the twirling circuits counts without going through
+            the calibration matrix
+        
+        '''
+        data1 = self.data[keya][2]
+        nsteps = len(data1['nt']) // 60
+        
+        vec_twirled_raw_1 = np.zeros((30, nsteps, 2 ** keya[0]),
+                                     dtype=gv._gvarcore.GVar)
+        vec_twirled_read_1 = np.zeros((30, nsteps, 2 ** keya[0]),
+                                      dtype=gv._gvarcore.GVar)
+        for i in range(nsteps):
+            for j in range(30):
+                print(i, j)
+                bc = eval(data1['counts bare'][60 * i + j])
+                vec = np.zeros((2 ** keya[0]))
+                norm = sum(bc.values())
+                for key in bc.keys():
+                    index = int(key, 16)
+                    vec[index] += bc[key] / norm
+                sdev = np.diag(vec)
+                cov = sdev - np.outer(vec, vec)
+                cov /= norm
+                vec = gv.gvar(vec, cov)
+                vec_twirled_raw_1[j, i] += vec
+                vec_twirled_read_1[j, i] += self.cal_mats[keya] @ vec
+        return vec_twirled_read_1, vec_twirled_raw_1
+    
+    
+    
+    
+    def getTwirlDDGvarFull(self, keya: tuple):
+        '''
+        
+        return the twirled circuits as gvars with and without readout
+        error mitigation
+        
+        Parameters
+        ----------
+        keya : tuple
+            key indicating which simulation run to select from
+        
+        as_gvar : bool
+            whether to return the array as a gvar or as a single vector
+        
+        Returns
+        -------
+        
+            
+        vec_twirled_raw_1 : numpy array
+            vector of the twirling circuits counts without going through
+            the calibration matrix
+            
+        vec_twirled_raw_1 : numpy array
+            vector of the twirling circuits counts without going through
+            the calibration matrix
+        
+        '''
+        data1 = self.data[keya][2]
+        nsteps = len(data1['nt']) // 60
+        
+        vec_twirled_raw_1 = np.zeros((2, 30, nsteps, 2 ** keya[0]),
+                                     dtype=gv._gvarcore.GVar)
+        vec_twirled_read_1 = np.zeros((2, 30, nsteps, 2 ** keya[0]),
+                                      dtype=gv._gvarcore.GVar)
+        for i in range(nsteps):
+            for j in range(60):
+                print(i, j)
+                bc = eval(data1['counts bare'][60 * i + j])
+                vec = np.zeros((2 ** keya[0]))
+                norm = sum(bc.values())
+                for key in bc.keys():
+                    index = int(key, 16)
+                    vec[index] += bc[key] / norm
+                sdev = np.diag(vec)
+                cov = sdev - np.outer(vec, vec)
+                cov /= norm
+                vec = gv.gvar(vec, cov)
+                vec_twirled_raw_1[j // 30, j % 30, i] += vec
+                cvec = self.cal_mats[keya] @ vec
+                vec_twirled_read_1[j // 30, j % 30, i] += cvec
+        return vec_twirled_read_1, vec_twirled_raw_1
+    
+    
+    
+    def getTwirlDDGvarOld(self, keya: tuple):
         '''
         
         return the twirled circuits as gvars with and without readout
@@ -438,8 +614,8 @@ class DataAnalysis(object):
         
         data1 = self.data[key][2]
         #calculate the number of trotter steps and number of twirling circuits
-        nsteps = max(np.array(data1['nt'])) - 1
-        ntwirl = len(data1['nt']) // nsteps // 2
+        nsteps = 20
+        ntwirl = 30
         print(nsteps, ntwirl)
         oper = np.array([1, -1, -1, 1, -1, 1, 1, -1])
         if key[0] == 7:
@@ -469,6 +645,26 @@ class DataAnalysis(object):
     Analysis functions
     ========================================================================
     '''
+    def run_gvar_analysis(self):
+        dlist = [{(3, 1): eval(self.data[(3, 1)][2]['counts bare'][1200]),
+                  (7, 1): eval(self.data[(7, 2)][2]['counts bare'][1200]),
+                  (3, 2): eval(self.data[(3, 1)][2]['counts bare'][1200]),
+                  (7, 2): eval(self.data[(7, 2)][2]['counts bare'][1200])},
+                 {(3, 1): eval(self.data[(3, 1)][2]['counts bare'][1201]),
+                  (7, 1): eval(self.data[(7, 2)][2]['counts bare'][1201]),
+                  (3, 2): eval(self.data[(3, 1)][2]['counts bare'][1201]),
+                  (7, 2): eval(self.data[(7, 2)][2]['counts bare'][1201])}]
+        self.constructReadoutConfusionMatrixGvar(dlist)
+        gvar_objects = {}
+        for key in dlist[0].keys():
+            vec, _ = self.getTwirlDDGvarFull(key)
+            oper = np.array([1, -1, -1, 1, -1, 1, 1, -1])
+            if key[0] == 7:
+                oper = np.kron(np.ones(4),
+                                np.kron(oper, np.ones(4)))
+            gvar_objects[key] = vec @ oper
+        gv.dump(gvar_objects, 'fullsetreadoutcorrelations.pkl')
+        
     def run_readout_correlation_analysis_gvar(self):
         dlist = [{(3, 1): eval(self.data[(3, 1)][2]['counts bare'][1200]),
                   (7, 1): eval(self.data[(7, 2)][2]['counts bare'][1200]),
@@ -485,15 +681,13 @@ class DataAnalysis(object):
             oper = np.array([1, -1, -1, 1, -1, 1, 1, -1])
             if key[0] == 7:
                 oper = np.kron(np.ones(4),
-                               np.kron(oper, np.ones(4)))
+                                np.kron(oper, np.ones(4)))
             gvar_objects[key] = vec @ oper
         gv.dump(gvar_objects, 'readoutcorrelations.pkl')
             
     def run_readout_correlation_analysis_bootstrap(self, nboot: int=1000,
                                                    DD: bool=True):
         '''
-        
-
         Parameters
         ----------
         nboot : int, optional
@@ -520,11 +714,13 @@ class DataAnalysis(object):
         self.constructReadoutConfusionMatrix('bootstrap', dlist, nboot=nboot)
         # construct a list of the observables via bootstrapping
         # using the number of twirls and the number of time steps
-        obs_bootstrap = {}
+        # obs_bootstrap = {}
         for key in dlist[0].keys():
-            obs = np.zeros((nboot, 30, 20))
+            print('analyzing ' + str(key))
             self.obsred = self.getTwirlDDBootstrapForReadout(key, nboot=nboot)
-            break
+            nq, param = key
+            filename = f'bootstrapreadoutnq={nq}pnum={param}.npy'
+            np.save(filename, self.obsred)
         
         
     def getCorrelationMatrix(self):
@@ -587,7 +783,7 @@ class DataAnalysis(object):
     def get_twirled(self, keya):
         data1 = self.data[keya][1]
         data2 = self.data[keya][4]
-        nsteps = len(data1['nt']) // 60
+        nsteps = 20
         print(nsteps)
         obs_twirled_raw_1 = np.zeros((30, nsteps))
         obs_twirled_readout_1 = np.zeros((30, nsteps))
@@ -647,11 +843,11 @@ def make_readout_shift_versus_machine_plot(rshifts):
              fillstyle='none',
              linestyle='none', markersize=3, label='ibm_nairobi')
     counter = 1
-    ax[0, 0].plot(np.abs(rshifts[(3, 1)][1][1].flatten()),
-             rshifts[(3, 1)][1][0].flatten(),
-             marker=fmts[counter], color=colors[counter],
-             fillstyle='full',
-             linestyle='none', markersize=3, label='ibm_jakarta')
+    # ax[0, 0].plot(np.abs(rshifts[(3, 1)][1][1].flatten()),
+    #          rshifts[(3, 1)][1][0].flatten(),
+    #          marker=fmts[counter], color=colors[counter],
+    #          fillstyle='full',
+    #          linestyle='none', markersize=3, label='ibm_jakarta')
     ax[0, 0].annotate(r'$N_s = 2$ $m_0 = 1$',(0.75, 0.15), 
                       xycoords='axes fraction',
                       horizontalalignment='center')
@@ -663,11 +859,11 @@ def make_readout_shift_versus_machine_plot(rshifts):
              fillstyle='none',
              linestyle='none', markersize=3, label='ibm_nairobi')
     counter = 1
-    ax[1, 0].plot(np.abs(rshifts[(7, 1)][0][1].flatten()),
-             rshifts[(7, 1)][0][0].flatten(),
-             marker=fmts[counter], color=colors[counter],
-             fillstyle='full',
-             linestyle='none', markersize=3, label='ibm_jakarta')
+    # ax[1, 0].plot(np.abs(rshifts[(7, 1)][0][1].flatten()),
+    #          rshifts[(7, 1)][0][0].flatten(),
+    #          marker=fmts[counter], color=colors[counter],
+    #          fillstyle='full',
+    #          linestyle='none', markersize=3, label='ibm_jakarta')
     ax[1, 0].annotate(r'$N_s = 4$ $m_0 = 1$',(0.75, 0.25), 
                       xycoords='axes fraction',
                       horizontalalignment='center')
@@ -680,13 +876,13 @@ def make_readout_shift_versus_machine_plot(rshifts):
               fillstyle='none',
               linestyle='none', markersize=3, label='ibm_nairobi')
     counter = 1
-    ax[0, 1].plot(np.abs(rshifts[(3, 2)][1][1].flatten()) +
-                  np.random.rand(600) * 0.05,
-              rshifts[(3, 2)][1][0].flatten() + 
-                            0.07 * np.abs(rshifts[(3, 2)][1][1].flatten()),
-              marker=fmts[counter], color=colors[counter],
-              fillstyle='full',
-              linestyle='none', markersize=3, label='ibm_jakarta')
+    # ax[0, 1].plot(np.abs(rshifts[(3, 2)][1][1].flatten()) +
+    #               np.random.rand(600) * 0.05,
+    #           rshifts[(3, 2)][1][0].flatten() + 
+    #                         0.07 * np.abs(rshifts[(3, 2)][1][1].flatten()),
+    #           marker=fmts[counter], color=colors[counter],
+    #           fillstyle='full',
+    #           linestyle='none', markersize=3, label='ibm_jakarta')
     ax[0, 1].yaxis.tick_right()
     ax[0, 1].annotate(r'$N_s = 2$ $m_0 = 2$',(0.75, 0.25), 
                       xycoords='axes fraction',
@@ -698,14 +894,14 @@ def make_readout_shift_versus_machine_plot(rshifts):
              marker=fmts[counter], color=colors[counter],
              fillstyle='none',
              linestyle='none', markersize=3, label='ibm_nairobi')
-    counter = 1
-    ax[1, 1].plot(np.abs(rshifts[(7, 2)][1][1].flatten()),
-             rshifts[(7, 2)][1][0].flatten(),
-             marker=fmts[counter], color=colors[counter],
-             fillstyle='full',
-             linestyle='none', markersize=3, label='ibm_jakarta')
+    # counter = 1
+    # ax[1, 1].plot(np.abs(rshifts[(7, 2)][1][1].flatten()),
+    #          rshifts[(7, 2)][1][0].flatten(),
+    #          marker=fmts[counter], color=colors[counter],
+    #          fillstyle='full',
+    #          linestyle='none', markersize=3, label='ibm_jakarta')
     ax[1, 1].yaxis.tick_right()
-    ax[1, 1].legend(framealpha=0)
+    # ax[1, 1].legend(framealpha=0)
     ax[1, 1].annotate(r'$N_s = 4$ $m_0 = 2$',(0.75, 0.25), 
                       xycoords='axes fraction',
                       horizontalalignment='center')
@@ -721,50 +917,66 @@ def make_readout_shift_versus_machine_plot(rshifts):
 def make_readout_shift_versus_circuit_depth(rshifts):
     xpts = np.linspace(1, 20, 20)
     key = (3, 1)
-    ypts1 = (np.mean(rshifts[key][0][0], axis=0),
+    ypts1 = gv.gvar(np.mean(rshifts[key][0][0], axis=0),
              np.std(rshifts[key][0][0], axis=0))
+    
+    ypts1 /= gv.gvar(np.abs(np.mean(rshifts[key][0][1], axis=0)),
+             np.std(rshifts[key][0][1], axis=0))
     
     key = (7, 1)
-    ypts2 = (np.mean(rshifts[key][1][0], axis=0),
-             np.std(rshifts[key][1][0], axis=0))
+    ypts2 = gv.gvar(np.mean(rshifts[key][1][0], axis=0),
+              np.std(rshifts[key][1][0], axis=0))
+    
+    ypts2 /= gv.gvar(np.abs(np.mean(rshifts[key][1][1], axis=0)),
+              np.std(rshifts[key][1][1], axis=0))
     
     key = (3, 2)
-    ypts3 = (np.mean(rshifts[key][1][0], axis=0),
+    ypts3 = gv.gvar(np.mean(rshifts[key][1][0], axis=0),
              np.std(rshifts[key][1][0], axis=0))
+    ypts3 /= gv.gvar(np.abs(np.mean(rshifts[key][1][1], axis=0)),
+             np.std(rshifts[key][1][1], axis=0))
 
     key = (7, 2)
-    ypts4 = (np.mean(rshifts[key][0][0], axis=0),
-             np.std(rshifts[key][0][0], axis=0))
+    ypts4 = gv.gvar(np.mean(rshifts[key][0][0], axis=0),
+              np.std(rshifts[key][0][0], axis=0))
+    ypts4 /= gv.gvar(np.abs(np.mean(rshifts[key][0][1], axis=0)),
+              np.std(rshifts[key][0][1], axis=0))
     counter = 0
-    plt.errorbar(xpts, ypts1[0], yerr=ypts1[1], fmt=fmts[counter],
+    plt.figure()
+    plt.errorbar(xpts, gv.mean(ypts1), yerr=gv.sdev(ypts1), fmt=fmts[counter],
                  color=colors[counter], label=r'$N_s = 2$ $m_0 = 1$',
                  capsize=5)
     counter += 1
-    plt.errorbar(xpts, ypts2[0], yerr=ypts2[1], fmt=fmts[counter],
-                 color=colors[counter], label=r'$N_s = 4$ $m_0 = 1$',
-                 capsize=5)
+    # plt.errorbar(xpts, gv.mean(ypts2), yerr=gv.sdev(ypts2), fmt=fmts[counter],
+    #               color=colors[counter], label=r'$N_s = 4$ $m_0 = 1$',
+    #               capsize=7)
     counter += 1
-    plt.errorbar(xpts, ypts3[0], yerr=ypts3[1], fmt=fmts[counter],
-                 color=colors[counter], label=r'$N_s = 2$ $m_0 = 2$',
-                 capsize=5)
+    plt.errorbar(xpts, gv.mean(ypts3), yerr=gv.sdev(ypts3), fmt=fmts[counter],
+                  color=colors[counter], label=r'$N_s = 2$ $m_0 = 2$',
+                  capsize=9)
     counter += 1
-    plt.errorbar(xpts, ypts4[0], yerr=ypts4[1], fmt=fmts[counter],
-                 color=colors[counter], label=r'$N_s = 4$ $m_0 = 2$',
-                 capsize=5)
+    # plt.errorbar(xpts, gv.mean(ypts4), yerr=gv.sdev(ypts4), fmt=fmts[counter],
+    #               color=colors[counter], label=r'$N_s = 4$ $m_0 = 2$',
+    #               capsize=11)
     plt.legend(framealpha=0, ncol=2)
+    plt.yscale('log')
+    plt.ylim(0.01, 1)
     plt.xlabel(r'$N_t$')
-    plt.ylabel(r'Absolute Shift')
-    plt.savefig('readoutshiftversuscircuitdepth.pdf')
+    plt.ylabel(r'Relative Shift')
+    plt.savefig('relativereadoutshiftversuscircuitdepth.pdf')
     
         
 if __name__ == "__main__":
     analyzer = DataAnalysis()
-    analyzer.run_readout_correlation_analysis_bootstrap(nboot=1000)
-    # readout_errors = True
-    # if readout_errors:
-    #     rshifts = analyzer.get_readout_shift()
-    #     # make_readout_shift_versus_machine_plot(rshifts)
-    #     # make_readout_shift_versus_circuit_depth(rshifts)
+    # analyzer.run_gvar_analysis()
+    # analyzer.run_readout_correlation_analysis_gvar()
+    # a, b = analyzer.getTwirlDDGvar((3, 1))
+    # analyzer.run_readout_correlation_analysis_bootstrap(nboot=2000)
+    readout_errors = True
+    if readout_errors:
+        rshifts = analyzer.get_readout_shift()
+        make_readout_shift_versus_machine_plot(rshifts)
+        make_readout_shift_versus_circuit_depth(rshifts)
         
 
 
