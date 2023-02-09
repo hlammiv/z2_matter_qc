@@ -837,8 +837,9 @@ def make_readout_shift_versus_machine_plot(rshifts):
     fig, ax = plt.subplots(ncols=2, nrows=2)
     
     counter = 0
+    xpts = np.abs(rshifts[(3, 1)][0][1].flatten())
     ax[0, 0].plot(np.abs(rshifts[(3, 1)][0][1].flatten()),
-             rshifts[(3, 1)][0][0].flatten(),
+             rshifts[(3, 1)][0][0].flatten() / xpts,
              marker=fmts[counter], color=colors[counter],
              fillstyle='none',
              linestyle='none', markersize=3, label='ibm_nairobi')
@@ -853,8 +854,9 @@ def make_readout_shift_versus_machine_plot(rshifts):
                       horizontalalignment='center')
     
     counter = 0
+    xpts = np.abs(rshifts[(7, 1)][1][1].flatten())
     ax[1, 0].plot(np.abs(rshifts[(7, 1)][1][1].flatten()),
-             rshifts[(7, 1)][1][0].flatten(),
+             rshifts[(7, 1)][1][0].flatten() / xpts,
              marker=fmts[counter], color=colors[counter],
              fillstyle='none',
              linestyle='none', markersize=3, label='ibm_nairobi')
@@ -870,8 +872,9 @@ def make_readout_shift_versus_machine_plot(rshifts):
     
     
     counter = 0
+    xpts = np.abs(rshifts[(3, 2)][1][1].flatten())
     ax[0, 1].plot(np.abs(rshifts[(3, 2)][1][1].flatten()),
-              rshifts[(3, 2)][1][0].flatten(),
+              rshifts[(3, 2)][1][0].flatten() / xpts,
               marker=fmts[counter], color=colors[counter],
               fillstyle='none',
               linestyle='none', markersize=3, label='ibm_nairobi')
@@ -889,8 +892,9 @@ def make_readout_shift_versus_machine_plot(rshifts):
                       horizontalalignment='center')
     
     counter = 0
+    xpts = np.abs(rshifts[(7, 2)][0][1].flatten())
     ax[1, 1].plot(np.abs(rshifts[(7, 2)][0][1].flatten()),
-             rshifts[(7, 2)][0][0].flatten(),
+             rshifts[(7, 2)][0][0].flatten() / xpts,
              marker=fmts[counter], color=colors[counter],
              fillstyle='none',
              linestyle='none', markersize=3, label='ibm_nairobi')
@@ -905,11 +909,13 @@ def make_readout_shift_versus_machine_plot(rshifts):
     ax[1, 1].annotate(r'$N_s = 4$ $m_0 = 2$',(0.75, 0.25), 
                       xycoords='axes fraction',
                       horizontalalignment='center')
-    fig.text(0.05, 0.5, r'Absolute Shift',
+    for i in range(4):
+        ax[i // 2, i % 2].set_ylim(0, 0.4)
+    fig.text(0.05, 0.5, r'$\mathcal{R}$',
              horizontalalignment='center', verticalalignment='center',
              rotation=90)
     
-    fig.text(0.5, 0.05, r'Observable Magnitude',
+    fig.text(0.5, 0.05, r'$\langle XZX \rangle_{unmitigated}$',
              horizontalalignment='center', verticalalignment='center')
     fig.savefig('readoutshiftsversusmachines.pdf')        
         
@@ -959,7 +965,7 @@ def make_readout_shift_versus_circuit_depth(rshifts):
     #               color=colors[counter], label=r'$N_s = 4$ $m_0 = 2$',
     #               capsize=11)
     plt.legend(framealpha=0, ncol=2)
-    plt.yscale('log')
+    # plt.yscale('log')
     plt.ylim(0.01, 1)
     plt.xlabel(r'$N_t$')
     plt.ylabel(r'Relative Shift')
@@ -969,14 +975,14 @@ def make_readout_shift_versus_circuit_depth(rshifts):
 if __name__ == "__main__":
     analyzer = DataAnalysis()
     # analyzer.run_gvar_analysis()
-    # analyzer.run_readout_correlation_analysis_gvar()
+    analyzer.run_readout_correlation_analysis_gvar()
     # a, b = analyzer.getTwirlDDGvar((3, 1))
     # analyzer.run_readout_correlation_analysis_bootstrap(nboot=2000)
-    readout_errors = True
+    readout_errors = False
     if readout_errors:
         rshifts = analyzer.get_readout_shift()
         make_readout_shift_versus_machine_plot(rshifts)
-        make_readout_shift_versus_circuit_depth(rshifts)
+        # make_readout_shift_versus_circuit_depth(rshifts)
         
 
 

@@ -34,6 +34,8 @@ mpl.rcParams["mathtext.fontset"] = "stix"
 
 datapoints = gv.load('readoutcorrelations.pkl')[(7, 2)]
 
+wavgs = []
+avgs = []
 for k in range(20):
     plt.figure()
     plt.title(str(k))
@@ -47,6 +49,7 @@ for k in range(20):
     
     wavg = lsqfit.wavg(points)
     
+    wavgs.append(wavg)
     plt.fill_between([0.5, 30.5], [gv.mean(wavg) + gv.sdev(wavg)] * 2,
                      [gv.mean(wavg) - gv.sdev(wavg)] * 2,
                      facecolor=[colors[1][i] for i in range(3)] + [0.5],
@@ -55,7 +58,8 @@ for k in range(20):
     
     
     avg = lsqfit.wavg(gv.gvar(gv.mean(points), gv.sdev(points)))
-    print(avg)
+    print(wavg)
+    avgs.append(avg)
     plt.fill_between([0.5, 30.5], [gv.mean(avg) + gv.sdev(avg)] * 2,
                      [gv.mean(avg) - gv.sdev(avg)] * 2,
                      facecolor=[colors[2][i] for i in range(3)] + [0.5],
