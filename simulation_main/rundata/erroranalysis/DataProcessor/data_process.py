@@ -978,7 +978,7 @@ if __name__ == "__main__":
     analyzer.run_readout_correlation_analysis_gvar()
     # a, b = analyzer.getTwirlDDGvar((3, 1))
     # analyzer.run_readout_correlation_analysis_bootstrap(nboot=2000)
-    readout_errors = False
+    readout_errors = True
     if readout_errors:
         rshifts = analyzer.get_readout_shift()
         make_readout_shift_versus_machine_plot(rshifts)
