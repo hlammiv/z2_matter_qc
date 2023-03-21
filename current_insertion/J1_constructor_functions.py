@@ -197,4 +197,78 @@ def run_job(nqubits,vector,which_qc,v_site):
 
     return counts
 
+def get_avg_counts(counts1,counts2,pm):
+    """
+    > pm -- vaiable that indicates if you want to get + or - average
+    +1 for average
+    -1 for average of the difference between counts 
+    """
+    avg_counts = {}
+    for item in counts1:
+        if item not in avg_counts:
+            if item in counts2:
+                avg_counts[item] = pm*(counts1[item] + counts2[item])/2
+            else:
+                avg_counts[item] = pm*counts1[item]/2
+                
+    for item in counts2:
+        if item not in avg_counts:
+            avg_counts[item] = pm*counts2[item]/2
+    return avg_counts 
 
+
+def get_final_counts(counts1,counts2):
+    
+    final_counts = {}
+    for item in counts1:
+        if item not in final_counts:
+            if item in counts2:
+                final_counts[item] = (-1)*((counts1[item] + counts2[item]))
+            else:
+                final_counts[item] = (-1)*counts1[item]
+                
+    for item in counts2:
+        if item not in final_counts:
+            final_counts[item] = (-1)*counts2[item]
+    return final_counts 
+        
+def run_simulation(nvectors,nqubits,v_site):
+    all_counts = []
+    for i in range(nvectors):
+        vector = np.random.rand(2**(nqubits-1))
+        norm = np.linalg.norm(vector)
+        if norm != 0: 
+            vector = vector/norm
+        
+        
+        vector_test = [0 for i in range(2**7)]
+        vector_test[1] = (1/8)**(1/2)
+        vector_test[2] = (1/8)**(1/2)
+        vector_test[3] = (1/8)**(1/2)
+        vector_test[4] = (1/8)**(1/2)
+        vector_test[5] = (1/8)**(1/2)
+        vector_test[6] = (1/8)**(1/2)
+        vector_test[7] = (1/8)**(1/2)
+        vector_test[8] = (1/8)**(1/2)
+        
+        counts_XzY_vm1_v = run_job(nqubits,vector,0,v_site)
+        counts_XzY_vp1_v = run_job(nqubits,vector,1,v_site)
+        counts_YzX_vm1_v = run_job(nqubits,vector,2,v_site)
+        counts_YzX_vp1_v = run_job(nqubits,vector,3,v_site)
+        avg_counts_XzYzX = get_avg_counts(counts_XzY_vm1_v,counts_YzX_vp1_v, 1)
+        avg_counts_YzXzY = get_avg_counts(counts_YzX_vm1_v,counts_XzY_vp1_v,-1)
+        final_counts = get_final_counts(avg_counts_XzYzX,avg_counts_YzXzY)
+       
+        #run_job(nqubits,vector,which_qc,v_site)
+        #print("For vector v = ", vector)        
+#         print("counts_XzY_vm1_v", counts_XzY_vm1_v )
+#         print("counts_XzY_vp1_v", counts_XzY_vp1_v )
+#         print("counts_YzX_vm1_v", counts_YzX_vm1_v )
+#         print("counts_YzX_vp1_v", counts_YzX_vp1_v )
+#         print(" avg_counts_XzYzX ", avg_counts_XzYzX )
+#         print("avg_counts_YzXzY", avg_counts_YzXzY)
+
+        print("final counts", final_counts )
+        all_counts.append(final_counts) 
+        
+    return all_counts
