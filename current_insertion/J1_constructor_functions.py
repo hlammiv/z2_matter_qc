@@ -197,42 +197,74 @@ def run_job(nqubits,vector,which_qc,v_site):
 
     return counts
 
-def get_avg_counts(counts1,counts2,pm):
-    """
-    > pm -- vaiable that indicates if you want to get + or - average
-    +1 for average
-    -1 for average of the difference between counts 
-    """
-    avg_counts = {}
-    for item in counts1:
-        if item not in avg_counts:
-            if item in counts2:
-                avg_counts[item] = pm*(counts1[item] + counts2[item])/2
-            else:
-                avg_counts[item] = pm*counts1[item]/2
-                
-    for item in counts2:
-        if item not in avg_counts:
-            avg_counts[item] = pm*counts2[item]/2
-    return avg_counts 
-
-
-def get_final_counts(counts1,counts2):
+def get_final_counts(nqubits, counts_XzY_vm1_v, counts_XzY_vp1_v, counts_YzX_vm1_v,counts_YzX_vp1_v):
     
     final_counts = {}
-    for item in counts1:
-        if item not in final_counts:
-            if item in counts2:
-                final_counts[item] = (-1)*((counts1[item] + counts2[item]))
-            else:
-                final_counts[item] = (-1)*counts1[item]
-                
-    for item in counts2:
-        if item not in final_counts:
-            final_counts[item] = (-1)*counts2[item]
-    return final_counts 
+    avg_counts_XzYzX = {}
+    avg_counts_YzXzY = {}
+    
+    if (nqubits > 4):
         
-def run_simulation(nvectors,nqubits,v_site):
+        # STEP 1 -- XzYzX --terms 1 and 3 in eq 20 from overleaf 
+        for item in counts_XzY_vm1_v: 
+            
+            if item not in avg_counts_XzYzX:
+                if item in counts_YzX_vp1_v:
+                    avg_counts_XzYzX[item] = -1/2*(counts_XzY_vm1_v[item]+counts_YzX_vp1_v[item])
+                else:
+                    avg_counts_XzYzX[item] = -1/2*(counts_XzY_vm1_v[item])
+                    
+        for item in counts_YzX_vp1_v:
+            if item not in avg_counts_XzYzX:
+                avg_counts_XzYzX[item] = -1/2*(counts_XzY_vp1_v[item])
+                
+         
+        # STEP 2 -- YzXzY --terms 2 and 4 in eq 20 from overleaf 
+        
+        for item in counts_YzX_vm1_v: 
+  
+            if item not in avg_counts_YzXzY:
+                if item in counts_XzY_vp1_v:
+                    avg_counts_YzXzY[item] = -1/2*(-1*counts_YzX_vm1_v[item]-counts_XzY_vp1_v[item])
+                else:
+                    avg_counts_YzXzY[item] = -1/2*(-1*counts_YzX_vm1_v[item])
+                    
+        for item in counts_XzY_vp1_v:
+            if item not in avg_counts_YzXzY:
+                avg_counts_YzXzY[item] = -1/2*(-1*counts_XzY_vp1_v[item])          
+            
+        # STEP 3 -- now add the XzYzX and YzXzY 
+        
+        for item in avg_counts_XzYzX:
+            if item not in final_counts:
+                if item in avg_counts_YzXzY:
+                    final_counts[item] = avg_counts_XzYzX[item]+avg_counts_YzXzY[item]
+                else:
+                    final_counts[item] = avg_counts_XzYzX[item]
+                    
+        for item in avg_counts_YzXzY:
+            if item not in final_counts:
+                final_counts[item] = avg_counts_YzXzY[item]
+    
+    else:
+        
+        for item in counts_XzY_vm1_v: 
+            
+            if item not in final_counts:
+                if item in counts_YzX_vm1_v:
+                    final_counts[item] = -1/2*(counts_XzY_vm1_v[item]-counts_YzX_vm1_v[item])
+                else:
+                    final_counts[item] = -1/2*(counts_XzY_vm1_v[item])
+                    
+        for item in counts_YzX_vm1_v:
+            if item not in final_counts:
+                final_counts[item] = -1/2*(-1*counts_YzX_vm1_v[item])
+        
+    
+    return final_counts             
+     
+        
+def run_simulation_test(nvectors,nqubits,v_site):
     all_counts = []
     for i in range(nvectors):
         vector = np.random.rand(2**(nqubits-1))
