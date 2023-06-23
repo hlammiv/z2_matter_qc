@@ -1,0 +1,34 @@
+---
+account_info:
+  hub: "ibm-q"
+  group: "open"
+  project: "main"
+
+
+backend_opts:
+  machine: "ibmq_jakarta"      # specify machine name or choose "least_busy" to run on any machine
+  qasm_simulator: True       # if True, usq ibmq_qasm_simulator 
+  noise_model: None  # choose None or device backend for noise model
+
+simulation_opts:
+  layout:
+    initial_layout: [5, 6, 3] # need to optimize this to specific machine pick the best qubits
+  lattice_params:
+    mass: 1.0            # fermion mass in lattice-spacing units (a*m)
+    nsites: 2          # number of lattice sites (must be even)
+  time_evolution:
+    tf: 3                # total time interval in lattice-spacing units (Delta(t)/a)
+    ntrotter: 20        # number of trotter steps (step size epsilon = tf/ntrotter)
+  pauli_twirling:
+    twirl: True          # if True, apply Pauli twirling
+    ntwirls: 30          # number of Pauli twirls
+  dynamic_decoupling:
+    method: None         # if None apply no dynamic decoupling otherwise apply XY4 or CMPQ
+  richardson_level: 1    # number of CNOTs for Richardson smearing
+
+runtime_opts:
+  program_id: "circuit-runner"
+  nshots: 2000                     # number of shots per simulation
+  readout_error_mitigation: True   # if True, correct for readout error using calibration matrix
+  memory: True                     # if True, save results for each shot
+  optimization_level: 1            #for circuit transpiler: 1 is least optimized and 3 is most optimized
